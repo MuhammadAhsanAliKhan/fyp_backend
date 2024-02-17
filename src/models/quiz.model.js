@@ -19,4 +19,8 @@ const quizSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    is_active: {
+        type: Boolean,
+        required: true,
+    },
 });

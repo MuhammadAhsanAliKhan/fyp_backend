@@ -5,12 +5,12 @@ const classSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    students: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Student",
-        },
-    ],
+    // students: [
+    //     {
+    //         type: mongoose.Schema.Types.ObjectId,
+    //         ref: "Student",
+    //     },
+    // ],
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Teacher",
@@ -24,6 +24,25 @@ const classSchema = new mongoose.Schema({
     ],
 });
 
+const classStudentSchema = new mongoose.Schema({
+    class: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Class",
+        required: true,
+    },
+    student: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+        required: true,
+    },
+});
+
 const Class = mongoose.model("Class", classSchema, "Classes");
+const ClassStudent = mongoose.model(
+    "ClassStudent",
+    classStudentSchema,
+    "ClassStudents"
+);
 
 module.exports = Class;
+module.exports = ClassStudent;
