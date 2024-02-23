@@ -10,7 +10,8 @@ const port = process.env.PORT || 5000;
 
 require("./src/db/conn");
 
-app.use("/auth", require("./src/routes/auth.routes"));
+app.use("/teacher", require("./src/routes/teacher.routes"));
+app.use("/student", require("./src/routes/student.routes"));
 
 app.listen(port, () => {
     console.log(`App listening on port ${port}`);

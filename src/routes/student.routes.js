@@ -1,20 +1,20 @@
 const express = require("express");
-const authRoutes = express.Router();
+const studentRoutes = express.Router();
 const { body, param } = require("express-validator");
-const authController = require("../controllers/auth.controllers");
+const studentController = require("../controllers/student.controllers");
 
-authRoutes
+studentRoutes
     .route("/signUp")
     .post(
         [body("email").isEmail(), body("password").isLength({ min: 5 })],
-        authController.signUp
+        studentController.signUp
     );
 
-authRoutes
+studentRoutes
     .route("/signIn")
     .post(
         [body("email").isEmail(), body("password").isLength({ min: 5 })],
-        authController.signIn
+        studentController.signIn
     );
 
-module.exports = authRoutes;
+module.exports = studentRoutes;
