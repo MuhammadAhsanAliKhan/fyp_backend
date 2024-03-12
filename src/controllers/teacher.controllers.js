@@ -1,4 +1,4 @@
-const { Teacher } = require("../models/teacher.model");
+const Teacher = require("../models/teacher.model");
 const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -32,43 +32,46 @@ const signUp = async (req, res) => {
 
         res.status(201).json({ msg: "User created successfully" });
     } catch (error) {
-        res.status(500).json({ msg: "Internal Server Error", error });
+        res.status(500).json({ msg: "Internal Server Error" });
     }
 };
 
-const signIn = async (req, res) => {
+const profile = async (req, res) => {
     try {
-        console.log("teacher/signIn");
+        console.log("teacher/profile");
+
+        const teacher = await Teacher.findById(req.decoded.id).select(
+            "-password"
+        );
+
+        console.log("teacher", teacher);
+        res.status(200).json({ teacher });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    try {
+        console.log("teacher/updateProfile");
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
+        const teacher = await Teacher.findByIdAndUpdate(
+            req.decoded.id,
+            req.body,
+            { new: true }
+        ).select("-password");
 
-        const { email, password } = req.body;
-
-        const teacher = await Teacher.findOne({ email });
-        if (!teacher) {
-            return res
-                .status(401)
-                .json({ errors: [{ msg: "Invalid credentials" }] });
-        }
-
-        const isMatch = await bcrypt.compare(password, teacher.password);
-        if (!isMatch) {
-            return res
-                .status(401)
-                .json({ errors: [{ msg: "Invalid credentials" }] });
-        }
-
-        const token = jwt.sign({ id: teacher._id }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
-
-        res.status(200).json({ msg: "User signed in successfully", token });
+        console.log("teacher", teacher);
+        res.status(200).json({ teacher });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ msg: "Internal Server Error" });
     }
 };
 
-module.exports = { signUp, signIn };
+module.exports = { signUp, profile, updateProfile };

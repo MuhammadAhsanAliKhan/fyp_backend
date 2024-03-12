@@ -1,4 +1,4 @@
-const { Student } = require("../models/student.model");
+const Student = require("../models/student.model");
 const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -38,53 +38,61 @@ const signUp = async (req, res) => {
 
         res.status(201).json({ msg: "User created successfully" });
     } catch (error) {
+        console.log("err:", error);
         res.status(500).json({ msg: "Internal Server Error" });
     }
 };
 
-const signIn = async (req, res) => {
+const profile = async (req, res) => {
     try {
-        console.log("student/signIn");
+        console.log("student/profile");
+
+        let student = await Student.findById(req.decoded.id).select(
+            "-password"
+        );
+        if (!student) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        res.status(200).json({ msg: "Profile", student: student });
+    } catch (error) {
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    try {
+        console.log("student/updateProfile");
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { email, password } = req.body;
+        const { name, age, cgpa, admission_date } = req.body;
 
-        const student = await Student.findOne({ email });
+        let student = await Student.findById(req.decoded.id);
         if (!student) {
-            return res
-                .status(401)
-                .json({ errors: [{ msg: "Invalid credentials" }] });
+            return res.status(404).json({ msg: "User not found" });
         }
 
-        const isMatch = await bcrypt.compare(password, student.password);
-        if (!isMatch) {
-            return res
-                .status(401)
-                .json({ errors: [{ msg: "Invalid credentials" }] });
-        }
-
-        const payload = {
-            user: {
-                id: student.id,
+        student = await Student.findByIdAndUpdate(
+            req.student.id,
+            {
+                name,
+                age,
+                cgpa,
+                admission_date,
             },
-        };
+            { new: true }
+        ).select("-password");
+        console.log("student:", student);
 
-        jwt.sign(
-            payload,
-            process.env.JWT_SECRET,
-            { expiresIn: 360000 },
-            (err, token) => {
-                if (err) throw err;
-                res.json({ token });
-            }
-        );
+        res.status(200).json({ msg: "Update Profile", student: student });
     } catch (error) {
+        console.log("err:", error);
         res.status(500).json({ msg: "Internal Server Error" });
     }
 };
 
-module.exports = { signUp, signIn };
+module.exports = { signUp, profile, updateProfile };
