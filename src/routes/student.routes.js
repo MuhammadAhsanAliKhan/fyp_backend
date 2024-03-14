@@ -25,4 +25,12 @@ studentRoutes
         studentController.updateProfile
     );
 
+studentRoutes
+    .route("/joinClass")
+    .post(
+        extractToken,
+        [body("class_code").isString()],
+        studentController.joinClass
+    );
+
 module.exports = studentRoutes;

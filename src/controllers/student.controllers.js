@@ -2,6 +2,8 @@ const Student = require("../models/student.model");
 const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const Class = require("../models/class.model");
+const ClassStudent = require("../models/classStudent.model");
 
 const signUp = async (req, res) => {
     try {
@@ -95,4 +97,42 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = { signUp, profile, updateProfile };
+const joinClass = async (req, res) => {
+    try {
+        console.log("student/joinClass");
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const join_code = req.body.class_code;
+
+        // dont select password, email, age, cgpa
+        let student = await Student.findById(req.decoded.id).select(
+            "-password -email -age -cgpa"
+        );
+        if (!student) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        const class_ = await Class.findOne({ join_code });
+        if (!class_) {
+            return res.status(404).json({ msg: "Class not found" });
+        }
+
+        const classStudent = new ClassStudent({
+            student: student._id,
+            class: class_._id,
+        });
+
+        await classStudent.save();
+
+        res.status(200).json({ msg: "Class joined", student: student });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+module.exports = { signUp, profile, updateProfile, joinClass };

@@ -54,9 +54,13 @@ loginRoutes
 
                 console.log("Signing token");
 
-                const token = jwt.sign({ id: _id }, process.env.JWT_SECRET, {
-                    expiresIn: "1h",
-                });
+                const token = jwt.sign(
+                    { id: _id, role: role },
+                    process.env.JWT_SECRET,
+                    {
+                        expiresIn: "4h",
+                    }
+                );
 
                 console.log("Token signed");
 

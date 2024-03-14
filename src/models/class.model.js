@@ -11,6 +11,11 @@ const classSchema = new mongoose.Schema({
     //         ref: "Student",
     //     },
     // ],
+    description: {
+        type: String,
+        required: true,
+        default: "",
+    },
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Teacher",
@@ -22,27 +27,17 @@ const classSchema = new mongoose.Schema({
             ref: "Quiz",
         },
     ],
-});
-
-const classStudentSchema = new mongoose.Schema({
-    class: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Class",
-        required: true,
+    avg_rating: {
+        type: Number,
+        required: false,
+        default: 0,
     },
-    student: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Student",
+    join_code: {
+        type: Number,
         required: true,
     },
 });
 
 const Class = mongoose.model("Class", classSchema, "Classes");
-const ClassStudent = mongoose.model(
-    "ClassStudent",
-    classStudentSchema,
-    "ClassStudents"
-);
 
 module.exports = Class;
-module.exports = ClassStudent;
