@@ -54,9 +54,17 @@ const classes = async (req, res) => {
         if (role === "teacher") {
             classes = await Class.find({ teacher: id });
         } else {
-            classes = await ClassStudent.find({ student: id }).populate(
-                "class",
-                "name"
+            const lstudents = await ClassStudent.find({
+                student: id,
+            }).populate("class", "name");
+            // class object for each student
+            classes = await Promise.all(
+                lstudents.map(async (lstudent) => {
+                    const class_ = await Class.findById(
+                        lstudent.class._id
+                    ).populate("teacher", "name");
+                    return class_;
+                })
             );
         }
         // add number of quiz created and released to each class
@@ -92,10 +100,18 @@ const class_ = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const class_ = await Class.findById(req.params.id).populate(
+        let class_ = await Class.findById(req.params.id).populate(
             "teacher",
             "name"
         );
+
+        const student = await ClassStudent.find({ class: req.params.id });
+        const enrolled = student.length;
+
+        class_ = {
+            ...class_._doc,
+            enrolled,
+        };
 
         if (!class_) {
             return res.status(404).json({ msg: "Class not found" });
