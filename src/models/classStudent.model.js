@@ -13,10 +13,10 @@ const classStudentSchema = new mongoose.Schema({
     },
 });
 
-const ClassStudent = mongoose.model(
-    "ClassStudent",
-    classStudentSchema,
-    "ClassStudents"
-);
+// const ClassStudent = mongoose.model(
+//     "ClassStudent",
+//     classStudentSchema,
+//     "ClassStudents"
+// );
 
-module.exports = ClassStudent;
+// module.exports = ClassStudent;

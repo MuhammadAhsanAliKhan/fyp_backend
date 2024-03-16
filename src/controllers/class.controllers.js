@@ -1,8 +1,9 @@
 const Class = require("../models/class.model");
-const ClassStudent = require("../models/classStudent.model");
+// const ClassStudent = require("../models/classStudent.model");
 const Quiz = require("../models/quiz.model");
 const Review = require("../models/review.model");
 const { validationResult } = require("express-validator");
+const Student = require("../models/student.model");
 
 const create = async (req, res) => {
     try {
@@ -54,34 +55,27 @@ const classes = async (req, res) => {
         if (role === "teacher") {
             classes = await Class.find({ teacher: id });
         } else {
-            const lstudents = await ClassStudent.find({
-                student: id,
-            }).populate("class", "name");
-            // class object for each student
-            classes = await Promise.all(
-                lstudents.map(async (lstudent) => {
-                    const class_ = await Class.findById(
-                        lstudent.class._id
-                    ).populate("teacher", "name");
-                    return class_;
-                })
-            );
+            // find all classes where the student is enrolled
+            const students = await Student.findById(id);
+            classes = students.classes;
+            classes = await Class.find({ _id: { $in: classes } });
         }
-        // add number of quiz created and released to each class
-        // release quiz if the current date is greater than the open_time
-        // remove quiz array from each class
+        console.log(classes);
+        // add number of quiz created and released anad enrolled number to each class
+        // release quiz is quiz if the current date is greater than the open_time
+        // remove quiz array, description, studentss from each class
         for (let i = 0; i < classes.length; i++) {
-            const students = await ClassStudent.find({ class: classes[i]._id });
             classes[i] = {
                 ...classes[i]._doc,
                 quizz_created: classes[i].quizzes.length,
                 quizz_released: classes[i].quizzes.filter(
                     (quiz) => quiz.open_time < new Date()
                 ).length,
-                students: students.length,
+                enrolled: classes[i].students.length,
             };
             delete classes[i].quizzes;
             delete classes[i].description;
+            delete classes[i].students;
         }
 
         res.status(200).json(classes);
@@ -100,18 +94,9 @@ const class_ = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        let class_ = await Class.findById(req.params.id).populate(
-            "teacher",
-            "name"
-        );
-
-        const student = await ClassStudent.find({ class: req.params.id });
-        const enrolled = student.length;
-
-        class_ = {
-            ...class_._doc,
-            enrolled,
-        };
+        let class_ = await Class.findById(req.params.id)
+            .populate("teacher", "name email")
+            .populate("students", "name email");
 
         if (!class_) {
             return res.status(404).json({ msg: "Class not found" });
@@ -133,22 +118,19 @@ const students = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const class_ = await ClassStudent.find({
-            class: req.params.id,
-        }).populate("student", "name email");
+        const class_ = await Class.findById(req.params.id).populate(
+            "students",
+            "name email classes"
+        );
 
-        // output only student name and email
-        const students = class_.map((student) => {
-            return {
-                id: student.student._id,
-                name: student.student.name,
-                email: student.student.email,
-            };
-        });
+        console.log("class:", class_);
 
         if (!class_) {
             return res.status(404).json({ msg: "Class not found" });
         }
+
+        const students = class_.students.map((student) => student);
+        console.log("students:", students);
 
         res.status(200).json(students);
     } catch (error) {

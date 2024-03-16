@@ -26,6 +26,12 @@ const studentSchema = new mongoose.Schema({
         type: Date,
         required: false,
     },
+    classes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Class",
+        },
+    ],
 });
 
 const Student = mongoose.model("Student", studentSchema, "Students");

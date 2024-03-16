@@ -3,7 +3,7 @@ const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Class = require("../models/class.model");
-const ClassStudent = require("../models/classStudent.model");
+// const ClassStudent = require("../models/classStudent.model");
 
 const signUp = async (req, res) => {
     try {
@@ -121,12 +121,12 @@ const joinClass = async (req, res) => {
             return res.status(404).json({ msg: "Class not found" });
         }
 
-        const classStudent = new ClassStudent({
-            student: student._id,
-            class: class_._id,
-        });
+        // add student to array of students in class and add class to array of classes in student
+        student.classes.push(class_._id);
+        await student.save();
 
-        await classStudent.save();
+        class_.students.push(student._id);
+        await class_.save();
 
         res.status(200).json({ msg: "Class joined", student: student });
     } catch (error) {
