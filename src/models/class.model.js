@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const classSchema = new mongoose.Schema({
-    name: {
+    courseName: {
         type: String,
         required: true,
     },
@@ -28,13 +28,30 @@ const classSchema = new mongoose.Schema({
         },
     ],
     avg_rating: {
-        type: Number,
+        type: double,
         required: false,
         default: 0,
     },
     join_code: {
         type: Number,
         required: true,
+    },
+    // Two new variables added, they will be updated whenever quiz will be added i guess this is my logic - Shehryar
+    quizCreated: {
+        type: int,
+        required: true,
+    },
+    quizReleased: {
+        type: int,
+        required: true,
+    },
+    studentEnrolledCount: {
+        type: int,
+        required: true,
+    },
+    review: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review",
     },
 });
 
