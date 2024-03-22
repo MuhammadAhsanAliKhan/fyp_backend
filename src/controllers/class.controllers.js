@@ -61,7 +61,7 @@ const getClasses = async (req, res) => {
             classes = await Class.find({ _id: { $in: classes } });
         }
         console.log(classes);
-        // add number of quiz created and released anad enrolled number to each class
+        // add number of quiz created and released and enrolled number to each class
         // release quiz is quiz if the current date is greater than the open_time
         // remove quiz array, description, studentss from each class
         for (let i = 0; i < classes.length; i++) {

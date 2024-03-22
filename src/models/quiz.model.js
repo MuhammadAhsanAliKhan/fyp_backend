@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const quizSchema = new mongoose.Schema({
+    //this is name
     title: {
         type: String,
         required: true,
@@ -11,17 +12,29 @@ const quizSchema = new mongoose.Schema({
             ref: "Question",
         },
     ],
-    open_time: {
-        type: Date,
+    // Quiz released at this time
+    start_time: {
+        type: DateTime,
         required: true,
     },
-    close_time: {
-        type: Date,
+    // is time quiz khatam hogya
+    end_time: {
+        type: DateTime,
         required: true,
     },
+    // this is for status
     is_active: {
         type: Boolean,
         required: true,
+    },
+    is_relesead: {
+        type: Boolean,
+        required: true,
+    },
+    //Adding Course reference because i need to tell next quiz is of which course
+    class:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Class",
     },
 });
 
