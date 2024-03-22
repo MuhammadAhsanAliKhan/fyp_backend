@@ -1,5 +1,25 @@
 const mongoose = require("mongoose");
 
+// const botMessageSchema = new mongoose.Schema({
+//     student: {
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: "Student",
+//         required: true,
+//     },
+//     prompt: {
+//         type: String,
+//         required: true,
+//     },
+//     response: {
+//         type: String,
+//         required: true,
+//     },
+//     timestamp: {
+//         type: Date,
+//         required: true,
+//     },
+// });
+
 const studentSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -32,6 +52,20 @@ const studentSchema = new mongoose.Schema({
             ref: "Class",
         },
     ],
+    quiz_grades: [
+        {
+            quiz: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Quiz",
+                required: true,
+            },
+            grade: {
+                type: Number,
+                required: true,
+            },
+        },
+    ],
+    // bot_messages: [botMessageSchema],
 });
 
 const Student = mongoose.model("Student", studentSchema, "Students");
