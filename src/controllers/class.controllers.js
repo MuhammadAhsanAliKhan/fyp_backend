@@ -5,7 +5,7 @@ const Review = require("../models/review.model");
 const { validationResult } = require("express-validator");
 const Student = require("../models/student.model");
 
-const create = async (req, res) => {
+const createClass = async (req, res) => {
     try {
         console.log("/class");
 
@@ -44,7 +44,7 @@ const create = async (req, res) => {
     }
 };
 
-const classes = async (req, res) => {
+const getClasses = async (req, res) => {
     try {
         console.log("/class");
 
@@ -85,7 +85,7 @@ const classes = async (req, res) => {
     }
 };
 
-const class_ = async (req, res) => {
+const getClass = async (req, res) => {
     try {
         console.log("/class/:id");
 
@@ -109,7 +109,7 @@ const class_ = async (req, res) => {
     }
 };
 
-const students = async (req, res) => {
+const getClassStudents = async (req, res) => {
     try {
         console.log("/class/:id/students");
 
@@ -139,7 +139,7 @@ const students = async (req, res) => {
     }
 };
 
-const quiz = async (req, res) => {
+const getClassQuizzes = async (req, res) => {
     try {
         console.log("/class/:id/quiz");
 
@@ -159,4 +159,10 @@ const quiz = async (req, res) => {
     }
 };
 
-module.exports = { create, classes, class_, students, quiz };
+module.exports = {
+    createClass,
+    getClasses,
+    getClass,
+    getClassStudents,
+    getClassQuizzes,
+};

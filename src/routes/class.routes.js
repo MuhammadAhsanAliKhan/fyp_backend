@@ -6,13 +6,17 @@ const { extractToken, checkRole } = require("../middleware/middleware");
 
 classRoutes
     .route("/")
-    .get(extractToken, classController.classes)
-    .post(extractToken, checkRole("teacher"), classController.create);
+    .get(extractToken, classController.getClasses)
+    .post(extractToken, checkRole("teacher"), classController.createClass);
 
-classRoutes.route("/:id").get(extractToken, classController.class_);
+classRoutes.route("/:id").get(extractToken, classController.getClass);
 
-classRoutes.route("/:id/students").get(extractToken, classController.students);
+classRoutes
+    .route("/:id/students")
+    .get(extractToken, classController.getClassStudents);
 
-classRoutes.route("/:id/quiz").get(extractToken, classController.quiz);
+classRoutes
+    .route("/:id/quiz")
+    .get(extractToken, classController.getClassQuizzes);
 
 module.exports = classRoutes;
