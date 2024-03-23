@@ -18,10 +18,12 @@ const teacherSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    classes: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Class",
-    },
+    classes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Class",
+        },
+    ],
     // class reference ayega yahan, aik teacher multiple classes parha sakta hai.
 });
 

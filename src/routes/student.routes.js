@@ -2,7 +2,7 @@ const express = require("express");
 const studentRoutes = express.Router();
 const { body, param } = require("express-validator");
 const studentController = require("../controllers/student.controllers");
-const { extractToken } = require("../middleware/middleware");
+const { extractToken, checkRole } = require("../middleware/middleware");
 
 studentRoutes
     .route("/signUp")
@@ -29,6 +29,7 @@ studentRoutes
     .route("/joinClass")
     .post(
         extractToken,
+        checkRole("student"),
         [body("class_code").isString()],
         studentController.joinClass
     );

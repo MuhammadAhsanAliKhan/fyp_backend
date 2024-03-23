@@ -14,12 +14,12 @@ const quizSchema = new mongoose.Schema({
     ],
     // Quiz released at this time
     start_time: {
-        type: DateTime,
+        type: Date,
         required: true,
     },
     // is time quiz khatam hogya
     end_time: {
-        type: DateTime,
+        type: Date,
         required: true,
     },
     // this is for status
@@ -32,7 +32,7 @@ const quizSchema = new mongoose.Schema({
         required: true,
     },
     //Adding Course reference because i need to tell next quiz is of which course
-    class:{
+    class: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Class",
     },

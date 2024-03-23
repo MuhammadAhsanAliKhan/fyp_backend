@@ -2,6 +2,7 @@ const Class = require("../models/class.model");
 // const ClassStudent = require("../models/classStudent.model");
 const Quiz = require("../models/quiz.model");
 const Review = require("../models/review.model");
+const Teacher = require("../models/teacher.model");
 const { validationResult } = require("express-validator");
 const Student = require("../models/student.model");
 
@@ -29,13 +30,21 @@ const createClass = async (req, res) => {
         const join_code = Math.floor(1000 + Math.random() * 9000);
 
         const class_ = new Class({
-            name,
+            course_name: name,
             teacher,
             description,
             join_code,
+            quizCreated: 0,
+            quizReleased: 0,
+            studentEnrolledCount: 0,
         });
 
         await class_.save();
+
+        // add class to teacher classes
+        const teacher_ = await Teacher.findById(teacher);
+        teacher_.classes.push(class_._id);
+        await teacher_.save();
 
         res.status(201).json({ msg: "Class created successfully" });
     } catch (error) {
@@ -65,14 +74,14 @@ const getClasses = async (req, res) => {
         // release quiz is quiz if the current date is greater than the open_time
         // remove quiz array, description, studentss from each class
         for (let i = 0; i < classes.length; i++) {
-            classes[i] = {
-                ...classes[i]._doc,
-                quizz_created: classes[i].quizzes.length,
-                quizz_released: classes[i].quizzes.filter(
-                    (quiz) => quiz.open_time < new Date()
-                ).length,
-                enrolled: classes[i].students.length,
-            };
+            // classes[i] = {
+            //     ...classes[i]._doc,
+            //     quizz_created: classes[i].quizzes.length,
+            //     quizz_released: classes[i].quizzes.filter(
+            //         (quiz) => quiz.open_time < new Date()
+            //     ).length,
+            //     enrolled: classes[i].students.length,
+            // };
             delete classes[i].quizzes;
             delete classes[i].description;
             delete classes[i].students;
