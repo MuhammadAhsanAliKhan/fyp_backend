@@ -128,6 +128,10 @@ const joinClass = async (req, res) => {
         class_.students.push(student._id);
         await class_.save();
 
+        // update studentEnrolledCount in class
+        class_.studentEnrolledCount += 1;
+        await class_.save();
+
         res.status(200).json({ msg: "Class joined", student: student });
     } catch (error) {
         console.log("err:", error);

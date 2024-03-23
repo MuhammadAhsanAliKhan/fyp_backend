@@ -2,6 +2,7 @@ const Class = require("../models/class.model");
 // const ClassStudent = require("../models/classStudent.model");
 const Quiz = require("../models/quiz.model");
 const Review = require("../models/review.model");
+const Teacher = require("../models/teacher.model");
 const { validationResult } = require("express-validator");
 const Student = require("../models/student.model");
 

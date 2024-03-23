@@ -28,7 +28,7 @@ const classSchema = new mongoose.Schema({
         },
     ],
     avg_rating: {
-        type: mongoose.Decimal128,
+        type: mongoose.Types.Decimal128,
         required: false,
         default: 0,
     },
