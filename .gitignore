@@ -1,1 +1,4 @@
 node_modules/
+config.env
+grading_subsystem/.venv/
+grading_subsystem/models/
