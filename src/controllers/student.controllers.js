@@ -162,6 +162,16 @@ const leaveClass = async (req, res) => {
             return res.status(404).json({ msg: "Class not found" });
         }
 
+        if (!student.classes.includes(req.params.classId)) {
+            return res
+                .status(400)
+                .json({ msg: "Student not enrolled in class" });
+        }
+
+        if (!class_.students.includes(req.decoded.id)) {
+            return res.status(400).json({ msg: "Student not in class" });
+        }
+
         // remove class from student classes
         student.classes = student.classes.filter(
             (classId) => classId.toString() !== class_._id.toString()

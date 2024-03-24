@@ -85,6 +85,7 @@ const getClasses = async (req, res) => {
             delete classes[i].quizzes;
             delete classes[i].description;
             delete classes[i].students;
+            delete classes[i].reviews;
         }
 
         res.status(200).json(classes);
@@ -163,7 +164,7 @@ const deleteClass = async (req, res) => {
         // remove all reviews of the class
         await Review.deleteMany({ class: req.params.id });
 
-        await class_.delete();
+        await Class.findByIdAndDelete(req.params.id);
 
         res.status(200).json({ msg: "Class deleted successfully" });
     } catch (error) {
@@ -229,6 +230,20 @@ const removeStudent = async (req, res) => {
 
         if (!student) {
             return res.status(404).json({ msg: "Student not found" });
+        }
+
+        if (!student.classes.includes(req.params.id)) {
+            return res
+                .status(400)
+                .json({ msg: "Student not enrolled in class" });
+        }
+
+        if (!class_.students.includes(req.params.studentId)) {
+            return res.status(400).json({ msg: "Student not in class" });
+        }
+
+        if (class_.teacher.toString() !== id) {
+            return res.status(403).json({ msg: "Forbidden incorrect teacher" });
         }
 
         // remove class from student classes
