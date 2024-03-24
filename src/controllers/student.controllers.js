@@ -139,4 +139,51 @@ const joinClass = async (req, res) => {
     }
 };
 
-module.exports = { signUp, profile, updateProfile, joinClass };
+// leave class
+const leaveClass = async (req, res) => {
+    try {
+        console.log("student/leaveClass/:classId");
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        // dont select password, email, age, cgpa
+        let student = await Student.findById(req.decoded.id).select(
+            "-password -email -age -cgpa"
+        );
+        if (!student) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        const class_ = await Class.findById(req.params.classId);
+        if (!class_) {
+            return res.status(404).json({ msg: "Class not found" });
+        }
+
+        // remove class from student classes
+        student.classes = student.classes.filter(
+            (classId) => classId.toString() !== class_._id.toString()
+        );
+
+        // remove student from class students
+        class_.students = class_.students.filter(
+            (studentId) => studentId.toString() !== student._id.toString()
+        );
+
+        await student.save();
+        await class_.save();
+
+        // update studentEnrolledCount in class
+        class_.studentEnrolledCount -= 1;
+        await class_.save();
+
+        res.status(200).json({ msg: "Class left", student: student });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+module.exports = { signUp, profile, updateProfile, joinClass, leaveClass };
