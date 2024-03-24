@@ -9,11 +9,19 @@ classRoutes
     .get(extractToken, classController.getClasses)
     .post(extractToken, checkRole("teacher"), classController.createClass);
 
-classRoutes.route("/:id").get(extractToken, classController.getClass);
+classRoutes
+    .route("/:id")
+    .get(extractToken, classController.getClass)
+    .delete(extractToken, checkRole("teacher"), classController.deleteClass);
 
 classRoutes
     .route("/:id/students")
     .get(extractToken, classController.getClassStudents);
+
+// remove a student from class
+classRoutes
+    .route("/:id/students/:studentId")
+    .delete(extractToken, checkRole("teacher"), classController.removeStudent);
 
 classRoutes
     .route("/:id/quiz")

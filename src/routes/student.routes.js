@@ -34,4 +34,13 @@ studentRoutes
         studentController.joinClass
     );
 
+studentRoutes
+    .route("/leaveClass/:classId")
+    .post(
+        extractToken,
+        checkRole("student"),
+        [param("classId").isMongoId()],
+        studentController.leaveClass
+    );
+
 module.exports = studentRoutes;
