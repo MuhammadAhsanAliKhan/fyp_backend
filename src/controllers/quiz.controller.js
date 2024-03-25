@@ -48,6 +48,7 @@ const getQuizzesByClass = async (req, res) => {
     }
 };
 
+
 const deleteQuiz = async (req, res) => {
     try {
         const quizId = req.params.quizId;
@@ -66,49 +67,214 @@ const deleteQuiz = async (req, res) => {
 };
 
 
+const getRecentQuizForStudent = async (req, res) => {
+  try {
+    const { student_id } = req.body;
+    if (!student_id) {
+      return res.status(400).send("Student ID is required");
+    }
 
-// const getRecentQuiz = async (req, res) => {
-//     try {
-//         const { student_id } = req.body;
-//         if (!student_id) {
-//             return res.status(400).send("Please provide student id");
-//         }
-//         else {
-//             const classes = await ClassModel.find({ students: student_id });
-//             const quizzes = await QuizModel.find({ class: { $in: classes }, is_released: true, status: "completed", is_active: false })
-//                 .sort({ end_time: -1 })
-//                 .limit(1);
-//             res.status(200).send({
-//                 message: "Quiz found successfully",
-//                 quiz: quizzes[0],
-//             });
-//         }
-//     } catch (error) {
-//         res.status(400).send(error);
-//     }
-// };
-// const getRecentQuiz = async (req, res) => {
-//     try {
-//         const { class_id } = req.body;
-//         if (!class_id) {
-//             return res.status(400).send("Please provide class id");
-//         }
-//         else{
-//             const quizzes = await QuizModel.find({ is_released: true, status: "completed", is_active: false, class: class_id})
-//                 .sort({ $subtract: ["$end_time", new Date()] }) // yeh line masla kar sakti hai
-//                 .limit(1);
-//             res.status(200).send({
-//                 message: "Quiz found successfully",
-//                 quiz: quizzes[0],
-//             });
-//         }
-//     } catch (error) {
-//         res.status(400).send(error);
-//     }
-// };
+    // Find the classes the student is enrolled in
+    const classes = await ClassModel.find({ students: student_id });
+    if (classes.length === 0) {
+      return res.status(404).send("Student not found in any classes");
+    }
+
+    const classIds = classes.map(c => c._id);
+    const currentTime = new Date();
+
+    // Find quizzes that meet the conditions and are closest to the current time
+    const recentQuiz = await Quiz.aggregate([
+      {
+        $match: {
+          class: { $in: classIds },
+          is_released: true,
+          status: "completed",
+          is_active: false,
+          end_time: { $lte: currentTime }
+        }
+      },
+      {
+        $project: {
+          class: 1,
+          title: 1,
+          start_time: 1,
+          end_time: 1,
+          timeDifference: { $abs: { $subtract: ["$end_time", currentTime] } }
+        }
+      },
+      { $sort: { timeDifference: 1 } },
+      { $limit: 1 }
+    ]).exec();
+
+    if (recentQuiz.length === 0) {
+      return res.status(404).send("No recent quizzes found for the student.");
+    }
+
+    res.status(200).json({
+      message: "Recent quiz found successfully",
+      quiz: recentQuiz[0]
+    });
+  } catch (error) {
+    console.error('Failed to fetch the recent quiz for student:', error);
+    res.status(500).send('Internal server error');
+  }
+};
+
+const getRecentQuizForTeacher = async (req, res) => {
+    try {
+      const { teacher_id } = req.body;
+      if (!teacher_id) {
+        return res.status(400).send("Teacher ID is required");
+      }
+  
+      // Find classes taught by the teacher
+      const classes = await ClassModel.find({ teacher: teacher_id });
+      if (!classes.length) {
+        return res.status(404).send("Teacher not found teaching any classes");
+      }
+  
+      const classIds = classes.map(c => c._id);
+      const currentTime = new Date();
+  
+      // Find quizzes that meet the conditions and are closest to the current time
+      const recentQuiz = await Quiz.aggregate([
+        {
+          $match: {
+            class: { $in: classIds },
+            is_released: true,
+            status: "completed",
+            is_active: false,
+            end_time: { $lte: currentTime }
+          }
+        },
+        {
+          $project: {
+            class: 1,
+            title: 1,
+            start_time: 1,
+            end_time: 1,
+            timeDifference: { $abs: { $subtract: ["$end_time", currentTime] } }
+          }
+        },
+        { $sort: { timeDifference: 1 } },
+        { $limit: 1 }
+      ]).exec();
+  
+      if (recentQuiz.length === 0) {
+        return res.status(404).send("No recent quizzes found for the teacher's classes.");
+      }
+  
+      res.status(200).json({
+        message: "Recent quiz found successfully",
+        quiz: recentQuiz[0]
+      });
+    } catch (error) {
+      console.error('Failed to fetch the recent quiz for teacher:', error);
+      res.status(500).send('Internal server error');
+    }
+  };
+
+
+
+  const getNextQuizForStudent = async (req, res) => {
+    try {
+      const { student_id } = req.body;
+      if (!student_id) {
+        return res.status(400).send("Student ID is required");
+      }
+  
+      // Find the classes the student is enrolled in
+      const classes = await ClassModel.find({ students: student_id });
+      if (!classes.length) {
+        return res.status(404).send("Student not found in any classes");
+      }
+  
+      // Extract class IDs for querying quizzes
+      const classIds = classes.map(c => c._id);
+  
+      const currentTime = new Date();
+  
+      // Find the next quiz for these classes
+      const quiz = await Quiz.find({
+        class: { $in: classIds },
+        is_active: false,
+        is_released: false,
+        start_time: { $gt: currentTime }
+      })
+      .sort({ start_time: 1 }) // Ensures the closest future quiz comes first
+      .limit(1)
+      .populate('Class') // Adjust based on your need to populate related data
+      .populate('Question'); // Example of populating related questions
+  
+      if (!quiz.length) {
+        return res.status(404).send("No next quiz found for the student.");
+      }
+  
+      res.status(200).json({
+        message: "Next quiz found successfully",
+        quiz: quiz[0]
+      });
+    } catch (error) {
+      console.error('Failed to fetch the next quiz for student:', error);
+      res.status(500).send('Internal server error');
+    }
+  };
+
+
+  const getNextQuizForTeacher = async (req, res) => {
+    try {
+      const { teacher_id } = req.body;
+      if (!teacher_id) {
+        return res.status(400).send("Teacher ID is required");
+      }
+  
+      // Find the classes taught by the teacher
+      const classes = await ClassModel.find({ teacher: teacher_id });
+      if (!classes.length) {
+        return res.status(404).send("Teacher not found teaching any classes");
+      }
+  
+      // Extract class IDs for querying quizzes
+      const classIds = classes.map(c => c._id);
+  
+      const currentTime = new Date();
+  
+      // Find the next quiz for these classes
+      const quiz = await Quiz.find({
+        class: { $in: classIds },
+        is_active: false,
+        is_released: false,
+        start_time: { $gt: currentTime }
+      })
+      .sort({ start_time: 1 }) // Finds the closest future quiz
+      .limit(1)
+      .populate('Class') // Adjust based on your need to populate related data
+      .populate('Question'); // For populating related questions
+  
+      if (!quiz.length) {
+        return res.status(404).send("No next quiz found for the teacher's classes.");
+      }
+  
+      res.status(200).json({
+        message: "Next quiz found successfully",
+        quiz: quiz[0]
+      });
+    } catch (error) {
+      console.error('Failed to fetch the next quiz for teacher:', error);
+      res.status(500).send('Internal server error');
+    }
+  };
 
 
 
 
 
-module.exports = { createQuiz, getQuizzesByClass };
+module.exports = { 
+    createQuiz,
+    getQuizzesByClass,
+    deleteQuiz,
+    getRecentQuizForStudent,
+    getRecentQuizForTeacher,
+    getNextQuizForStudent,
+    getNextQuizForTeacher};
