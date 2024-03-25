@@ -3,6 +3,16 @@ const studentRoutes = express.Router();
 const { body, param } = require("express-validator");
 const studentController = require("../controllers/student.controllers");
 const { extractToken, checkRole } = require("../middleware/middleware");
+const multer = require("multer");
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "uploads/");
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-" + file.originalname);
+    },
+});
+const upload = multer({ storage: storage });
 
 studentRoutes
     .route("/signUp")
@@ -15,10 +25,11 @@ studentRoutes
     .route("/profile")
     .get(extractToken, studentController.profile)
     .put(
+        upload.single("profile_picture"),
         extractToken,
         [
-            body("name").isString(),
-            body("age").isNumeric(),
+            body("name").isString().optional(),
+            body("age").isNumeric().optional(),
             body("cgpa").isNumeric().optional(),
             body("admission_date").isDate().optional(),
         ],
@@ -42,5 +53,7 @@ studentRoutes
         [param("classId").isMongoId()],
         studentController.leaveClass
     );
+
+// studentRoutes.route("uploads/:filename").get(studentController.getPicture);
 
 module.exports = studentRoutes;

@@ -71,26 +71,51 @@ const updateProfile = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { name, age, cgpa, admission_date } = req.body;
+        let updateFields = {};
+
+        // Check if the fields exist in the request body and add them to the updateFields object
+        if (req.body.name) updateFields.name = req.body.name;
+        if (req.body.age) updateFields.age = req.body.age;
+        if (req.body.cgpa) updateFields.cgpa = req.body.cgpa;
+        if (req.body.admission_date)
+            updateFields.admission_date = req.body.admission_date;
+
+        // Check if a file is uploaded and add it to the updateFields object
+        if (req.file) {
+            updateFields.profile_picture = {
+                filename: req.file.filename,
+                path: req.file.path,
+            };
+        }
 
         let student = await Student.findById(req.decoded.id);
         if (!student) {
             return res.status(404).json({ msg: "User not found" });
         }
 
-        student = await Student.findByIdAndUpdate(
-            req.student.id,
-            {
-                name,
-                age,
-                cgpa,
-                admission_date,
-            },
-            { new: true }
-        ).select("-password");
+        console.log("updateFields:", updateFields);
+        console.log("student:", student);
+
+        student = await Student.findByIdAndUpdate(student._id, updateFields, {
+            new: true,
+        }).select("-password");
+
         console.log("student:", student);
 
         res.status(200).json({ msg: "Update Profile", student: student });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+const getPicture = async (req, res) => {
+    try {
+        console.log("uploads/" + req.params.filename);
+
+        res.sendFile("uploads/" + req.params.filename, {
+            root: "../../",
+        });
     } catch (error) {
         console.log("err:", error);
         res.status(500).json({ msg: "Internal Server Error" });
@@ -196,4 +221,11 @@ const leaveClass = async (req, res) => {
     }
 };
 
-module.exports = { signUp, profile, updateProfile, joinClass, leaveClass };
+module.exports = {
+    signUp,
+    profile,
+    updateProfile,
+    getPicture,
+    joinClass,
+    leaveClass,
+};

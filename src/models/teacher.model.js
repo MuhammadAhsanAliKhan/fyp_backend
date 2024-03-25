@@ -18,6 +18,10 @@ const teacherSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    profile_picture: {
+        filename: String,
+        path: String,
+    },
     classes: [
         {
             type: mongoose.Schema.Types.ObjectId,

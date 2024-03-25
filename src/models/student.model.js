@@ -46,6 +46,10 @@ const studentSchema = new mongoose.Schema({
         type: Date,
         required: false,
     },
+    profile_picture: {
+        filename: String,
+        path: String,
+    },
     classes: [
         {
             type: mongoose.Schema.Types.ObjectId,

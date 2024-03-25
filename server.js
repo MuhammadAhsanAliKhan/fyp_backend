@@ -8,6 +8,8 @@ app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
+app.use("/uploads", express.static("uploads"));
+
 require("./src/db/conn");
 
 app.use("/teacher", require("./src/routes/teacher.routes"));

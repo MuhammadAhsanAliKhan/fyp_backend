@@ -56,17 +56,32 @@ const updateProfile = async (req, res) => {
     try {
         console.log("teacher/updateProfile");
 
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+        let teacher = await Teacher.findById(req.decoded.id).select(
+            "-password"
+        );
+
+        if (!teacher) {
+            return res.status(404).json({ msg: "User not found" });
         }
-        const teacher = await Teacher.findByIdAndUpdate(
+
+        let updateFields = {};
+        if (req.body.name) updateFields.name = req.body.name;
+        if (req.body.age) updateFields.age = req.body.age;
+        if (req.file) {
+            updateFields.profile_picture = {
+                filename: req.file.filename,
+                path: req.file.path,
+            };
+        }
+
+        teacher = await Teacher.findByIdAndUpdate(
             req.decoded.id,
-            req.body,
-            { new: true }
+            updateFields,
+            {
+                new: true,
+            }
         ).select("-password");
 
-        console.log("teacher", teacher);
         res.status(200).json({ teacher });
     } catch (error) {
         console.log(error);
