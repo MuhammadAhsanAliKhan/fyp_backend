@@ -36,7 +36,7 @@ const studentSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        required: true,
+        required: false,
     },
     cgpa: {
         type: Number,

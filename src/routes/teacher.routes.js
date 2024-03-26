@@ -17,6 +17,7 @@ const upload = multer({ storage: storage });
 teacherRoutes
     .route("/signUp")
     .post(
+        upload.single("profile_picture"),
         [body("email").isEmail(), body("password").isLength({ min: 5 })],
         teacherController.signUp
     );

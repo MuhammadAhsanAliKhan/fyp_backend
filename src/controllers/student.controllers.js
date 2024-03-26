@@ -15,6 +15,7 @@ const signUp = async (req, res) => {
         }
 
         const { email, password, name, age, cgpa, admission_date } = req.body;
+        const file = req.file;
 
         console.log(req.body);
 
@@ -33,6 +34,10 @@ const signUp = async (req, res) => {
             age,
             cgpa,
             admission_date,
+            profile_picture: {
+                filename: file.filename,
+                path: file.path,
+            },
         });
 
         console.log("Saving new user", student);

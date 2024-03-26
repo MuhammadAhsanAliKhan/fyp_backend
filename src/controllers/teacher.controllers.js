@@ -13,6 +13,7 @@ const signUp = async (req, res) => {
         }
 
         const { email, password, name, age } = req.body;
+        const file = req.file;
 
         console.log("----", req.body);
         const existingUser = await Teacher.findOne({ email });
@@ -27,6 +28,10 @@ const signUp = async (req, res) => {
             password: hashedPassword,
             name,
             age,
+            profile_picture: {
+                filename: file.filename,
+                path: file.path,
+            },
         });
         await teacher.save();
 
