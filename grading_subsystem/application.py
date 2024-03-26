@@ -138,22 +138,24 @@ grades each student response and returns grade of each student response'''
 @app.route('/grade', methods=['POST'])
 def grade_student_response():
     # Get student response and golden answer from request
-    questions = request.json['questions']
+    studentRes = request.json['studentRes']
+    quiz_id = request.json['quiz_id']
+    student_id = request.json['student_id']
 
-    for question in questions:
-        student_response = question['student_response']
-        golden_answer = question['golden_answer']
-        true_grade = question['true_grade']
-        question = question['question']
+    for res in studentRes:
+        student_response = res['student_response']
+        golden_answer = res['answer']
+        true_grade = res['true_grade']
+        question = res['question']
 
         # Calculate similarity of student response to golden answer
         similarity = calculate_similarity(student_response, golden_answer, question, true_grade)
         grade = calculate_grade(similarity, true_grade)
         
-        question['grade'] = grade
-        question['similarity'] = similarity
+        res['grade'] = grade
+        res['similarity'] = similarity
 
-    return jsonify({'questions': questions})
+    return jsonify({'questions': res})
 
 def preprocess_text(text):
     # Tokenization, lowercasing, and punctuation removal
