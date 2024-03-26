@@ -36,7 +36,7 @@ const studentSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        required: true,
+        required: false,
     },
     cgpa: {
         type: Number,
@@ -45,6 +45,10 @@ const studentSchema = new mongoose.Schema({
     admission_date: {
         type: Date,
         required: false,
+    },
+    profile_picture: {
+        filename: String,
+        path: String,
     },
     classes: [
         {
