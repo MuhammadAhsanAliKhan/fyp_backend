@@ -1,6 +1,8 @@
 const QuestionModel = require("../models/question.model");
 const ClassModel = require("../models/class.model");
 const QuizModel = require("../models/quiz.model");
+const StudentModel = require("../models/student.model");
+const axios = require("axios");
 
 const createQuiz = async (req, res) => {
     try {
