@@ -36,6 +36,12 @@ const quizSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Class",
     },
+    submitted_by: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Student",
+        },
+    ],
 });
 
 const Quiz = mongoose.model("Quiz", quizSchema, "Quizzes");

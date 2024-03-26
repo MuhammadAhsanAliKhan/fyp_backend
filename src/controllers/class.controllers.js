@@ -70,23 +70,6 @@ const getClasses = async (req, res) => {
             classes = await Class.find({ _id: { $in: classes } });
         }
         console.log(classes);
-        // add number of quiz created and released and enrolled number to each class
-        // release quiz is quiz if the current date is greater than the open_time
-        // remove quiz array, description, studentss from each class
-        for (let i = 0; i < classes.length; i++) {
-            // classes[i] = {
-            //     ...classes[i]._doc,
-            //     quizz_created: classes[i].quizzes.length,
-            //     quizz_released: classes[i].quizzes.filter(
-            //         (quiz) => quiz.open_time < new Date()
-            //     ).length,
-            //     enrolled: classes[i].students.length,
-            // };
-            delete classes[i].quizzes;
-            delete classes[i].description;
-            delete classes[i].students;
-            delete classes[i].reviews;
-        }
 
         res.status(200).json(classes);
     } catch (error) {
@@ -106,7 +89,8 @@ const getClass = async (req, res) => {
 
         let class_ = await Class.findById(req.params.id)
             .populate("teacher", "name email")
-            .populate("students", "name email");
+            .populate("students", "name email")
+            .populate("quizzes", "title");
 
         if (!class_) {
             return res.status(404).json({ msg: "Class not found" });
@@ -184,7 +168,7 @@ const getClassStudents = async (req, res) => {
 
         const class_ = await Class.findById(req.params.id).populate(
             "students",
-            "name email classes"
+            "name email classes profile_picture"
         );
 
         console.log("class:", class_);
@@ -196,7 +180,9 @@ const getClassStudents = async (req, res) => {
         const students = class_.students.map((student) => student);
         console.log("students:", students);
 
-        res.status(200).json(students);
+        studentEnrolledCount = class_.studentEnrolledCount;
+
+        res.status(200).json({ studentEnrolledCount, students });
     } catch (error) {
         console.log("err:", error);
         res.status(500).json({ msg: "Internal Server Error" });
@@ -289,25 +275,6 @@ const getClassQuizzes = async (req, res) => {
     }
 };
 
-const updateClass = async (req, res) => {
-    const { classId, quizId } = req.params;
-
-    try {
-        const updatedClass = await Class.findByIdAndUpdate(classId, {
-            $push: { quizzes: quizId }
-        }, { new: true, runValidators: true }).populate('quizzes'); // Optionally populate quizzes to return them in the updated document
-
-        if (!updatedClass) {
-            return res.status(404).send('The class with the given ID was not found.');
-        }
-
-        res.status(200).send({message: "Class updated successfully", updatedClass: updatedClass});
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-};
-
-
 module.exports = {
     createClass,
     getClasses,
@@ -316,5 +283,4 @@ module.exports = {
     getClassStudents,
     removeStudent,
     getClassQuizzes,
-    updateClass,
 };
