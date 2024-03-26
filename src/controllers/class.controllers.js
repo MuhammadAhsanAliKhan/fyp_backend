@@ -289,6 +289,25 @@ const getClassQuizzes = async (req, res) => {
     }
 };
 
+const updateClass = async (req, res) => {
+    const { classId, quizId } = req.params;
+
+    try {
+        const updatedClass = await Class.findByIdAndUpdate(classId, {
+            $push: { quizzes: quizId }
+        }, { new: true, runValidators: true }).populate('quizzes'); // Optionally populate quizzes to return them in the updated document
+
+        if (!updatedClass) {
+            return res.status(404).send('The class with the given ID was not found.');
+        }
+
+        res.status(200).send({message: "Class updated successfully", updatedClass: updatedClass});
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+};
+
+
 module.exports = {
     createClass,
     getClasses,
@@ -297,4 +316,5 @@ module.exports = {
     getClassStudents,
     removeStudent,
     getClassQuizzes,
+    updateClass,
 };

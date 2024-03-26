@@ -27,4 +27,8 @@ classRoutes
     .route("/:id/quiz")
     .get(extractToken, classController.getClassQuizzes);
 
+classRoutes
+    .route("/api/classes/:classId/add-quiz/:quizId")
+    .get(classController.getClassQuizzes);
+
 module.exports = classRoutes;
