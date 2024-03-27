@@ -59,7 +59,7 @@ const profile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        console.log("teacher/updateProfile");
+        console.log("teacher/pofile");
 
         let teacher = await Teacher.findById(req.decoded.id).select(
             "-password"

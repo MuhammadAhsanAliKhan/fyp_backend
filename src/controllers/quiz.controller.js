@@ -350,21 +350,25 @@ const submitQuiz = async (req, res) => {
                 question_id: response.question_id,
                 student_answer: response.student_answer,
                 question: quest.question,
-                grade: quest.grade,
+                grade: 0,
                 answer: quest.answer,
             };
         });
 
+        student_res = await Promise.all(student_res);
+
+        console.log("Student Response", student_res);
+
         let grade;
         // Calculate the grade through flask API
         await axios
-            .post("http://localhost:8000/grade", {
+            .post("http://127.0.0.1:8000/grade", {
                 quiz_id,
                 student_id,
                 student_res,
             })
             .then((response) => {
-                grade = response.data.grade;
+                grade = response.data;
             })
             .catch((error) => {
                 console.error(
@@ -378,7 +382,7 @@ const submitQuiz = async (req, res) => {
         total = 0;
         // Save the student response to each question in question model
         const submission = await Promise.all(
-            grade.map(async (response) => {
+            grade.questions.map(async (response) => {
                 const question = await QuestionModel.findById(
                     response.question_id
                 );
