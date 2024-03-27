@@ -77,7 +77,7 @@ const profile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        console.log("student/updateProfile");
+        console.log("student/profile");
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

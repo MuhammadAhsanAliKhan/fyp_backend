@@ -138,14 +138,14 @@ grades each student response and returns grade of each student response'''
 @app.route('/grade', methods=['POST'])
 def grade_student_response():
     # Get student response and golden answer from request
-    studentRes = request.json['studentRes']
-    quiz_id = request.json['quiz_id']
-    student_id = request.json['student_id']
+    studentRes = request.json.get('student_res', [])
+    quiz_id = request.json.get('quiz_id', '')
+    student_id = request.json.get('student_id', '')
 
     for res in studentRes:
-        student_response = res['student_response']
+        student_response = res['student_answer']
         golden_answer = res['answer']
-        true_grade = res['true_grade']
+        true_grade = res['grade']
         question = res['question']
 
         # Calculate similarity of student response to golden answer
@@ -155,7 +155,7 @@ def grade_student_response():
         res['grade'] = grade
         res['similarity'] = similarity
 
-    return jsonify({'questions': res})
+    return jsonify({'questions': studentRes})
 
 def preprocess_text(text):
     # Tokenization, lowercasing, and punctuation removal
@@ -182,9 +182,12 @@ def calculate_similarity(student_ans, gold_ans, question,marks):
     # print('doc2:',doc2)
     similarity1 = doc1.similarity(doc2)
     # print('similarity1:',similarity1)
+    # convert marks to float
+    marks = float(marks)
     return (similarity1*marks)
 
 def calculate_grade(similarity_score, true_grade):
+    true_grade = int(true_grade)
     if true_grade==1 and similarity_score > 0.63:
         return 1
     elif true_grade==2 and similarity_score > 1.26:
