@@ -16,6 +16,8 @@ questionRoute.delete('/deleteQuestion/:id', questionController.deleteQuestion);
 
 questionRoute.get('/label/:label', questionController.GetFilteredQuestions);
 
+questionRoute.get('/unique-labels', questionController.GetUnqiueLabels);
+
 
 
 
