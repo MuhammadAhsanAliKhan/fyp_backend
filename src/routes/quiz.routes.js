@@ -24,4 +24,8 @@ quizRoutes.route('/nextQuizForStudent').post(quizController.getNextQuizForStuden
 // POST route to get the next quiz for a teacher
 quizRoutes.route('/nextQuizForTeacher').post(quizController.getNextQuizForTeacher);
 
+quizRoutes.route('/activateQuiz').put(quizController.activateQuiz);
+
+quizRoutes.route('/deactivateQuiz').put(quizController.deactivateQuiz);
+
 module.exports = quizRoutes;

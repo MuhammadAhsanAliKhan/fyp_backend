@@ -285,6 +285,55 @@ const getNextQuizForTeacher = async (req, res) => {
   }
 };
 
+const activateQuiz = async (req, res) => {
+  const { courseId, time } = req.body; // Extract courseId and time from request body
+  
+  try {
+      const currentTime = new Date(time); // Convert time to Date object if it's not already
+      
+      // Find and update quizzes
+      const result = await Quiz.updateMany(
+          { 
+              class: courseId, 
+              start_time: { $gte: currentTime } 
+          },
+          {
+              $set: { is_active: true }
+          }
+      );
+
+      if(result.modifiedCount > 0) {
+          res.status(200).json({Message: "Successfully updated ${result.modifiedCount} quizzes"});
+      } else {
+          res.send('No quizzes were updated. Please check your inputs.');
+      }
+  } catch (error) {
+      res.status(500).send('An error occurred while updating the quizzes.');
+      console.error(error);
+  }
+};
+
+const deactivateQuiz = async (req, res) => {
+  const { quizId } = req.body; // Extract quizId from request body
+
+  try {
+      // Find the quiz by ID and update its is_active field to false
+      const result = await Quiz.findByIdAndUpdate(quizId, 
+          { $set: { is_active: false } },
+          { new: true } // This option returns the document after update was applied
+      );
+
+      if(result) {
+          res.status(200).send(`Quiz with ID ${quizId} has been successfully deactivated.`);
+      } else {
+          res.send('No quiz found with the provided ID.');
+      }
+  } catch (error) {
+      res.status(500).send('An error occurred while deactivating the quiz.');
+      console.error(error);
+  }
+};
+
 
 
 
@@ -296,7 +345,9 @@ module.exports = {
   getRecentQuizForStudent,
   getRecentQuizForTeacher,
   getNextQuizForStudent,
-  getNextQuizForTeacher
+  getNextQuizForTeacher,
+  activateQuiz,
+  deactivateQuiz,
 };
 
 
