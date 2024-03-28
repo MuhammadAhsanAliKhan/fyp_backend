@@ -255,52 +255,57 @@ const getNextQuizForStudent = async (req, res) => {
 };
 
 const activateQuiz = async (req, res) => {
-  const { courseId, time } = req.body; // Extract courseId and time from request body
-  
-  try {
-      const currentTime = new Date(time); // Convert time to Date object if it's not already
-      
-      // Find and update quizzes
-      const result = await Quiz.updateMany(
-          { 
-              class: courseId, 
-              start_time: { $gte: currentTime } 
-          },
-          {
-              $set: { is_active: true }
-          }
-      );
+    const { courseId, time } = req.body; // Extract courseId and time from request body
 
-      if(result.modifiedCount > 0) {
-          res.status(200).json({Message: "Successfully updated ${result.modifiedCount} quizzes"});
-      } else {
-          res.send('No quizzes were updated. Please check your inputs.');
-      }
-  } catch (error) {
-      res.status(500).send('An error occurred while updating the quizzes.');
-      console.error(error);
-  }
+    try {
+        const currentTime = new Date(time); // Convert time to Date object if it's not already
+
+        // Find and update quizzes
+        const result = await Quiz.updateMany(
+            {
+                class: courseId,
+                start_time: { $gte: currentTime },
+            },
+            {
+                $set: { is_active: true },
+            }
+        );
+
+        if (result.modifiedCount > 0) {
+            res.status(200).json({
+                Message: "Successfully updated ${result.modifiedCount} quizzes",
+            });
+        } else {
+            res.send("No quizzes were updated. Please check your inputs.");
+        }
+    } catch (error) {
+        res.status(500).send("An error occurred while updating the quizzes.");
+        console.error(error);
+    }
 };
 
 const deactivateQuiz = async (req, res) => {
-  const { quizId } = req.body; // Extract quizId from request body
+    const { quizId } = req.body; // Extract quizId from request body
 
-  try {
-      // Find the quiz by ID and update its is_active field to false
-      const result = await Quiz.findByIdAndUpdate(quizId, 
-          { $set: { is_active: false } },
-          { new: true } // This option returns the document after update was applied
-      );
+    try {
+        // Find the quiz by ID and update its is_active field to false
+        const result = await Quiz.findByIdAndUpdate(
+            quizId,
+            { $set: { is_active: false } },
+            { new: true } // This option returns the document after update was applied
+        );
 
-      if(result) {
-          res.status(200).send(`Quiz with ID ${quizId} has been successfully deactivated.`);
-      } else {
-          res.send('No quiz found with the provided ID.');
-      }
-  } catch (error) {
-      res.status(500).send('An error occurred while deactivating the quiz.');
-      console.error(error);
-  }
+        if (result) {
+            res.status(200).send(
+                `Quiz with ID ${quizId} has been successfully deactivated.`
+            );
+        } else {
+            res.send("No quiz found with the provided ID.");
+        }
+    } catch (error) {
+        res.status(500).send("An error occurred while deactivating the quiz.");
+        console.error(error);
+    }
 };
 
 const getNextQuizForTeacher = async (req, res) => {
@@ -471,17 +476,115 @@ const submitQuiz = async (req, res) => {
     }
 };
 
+const getQuizResultsForTeacher = async (req, res) => {
+    try {
+        const { quiz_id } = req.params;
+        const quiz = await QuizModel.findById(quiz_id);
+        if (!quiz) {
+            return res.status(404).send("Quiz not found");
+        }
+
+        // class highest and total number of submissions
+        let class_highest = 0;
+        let total_submissions = quiz.submitted_by.length;
+
+        let results = await Promise.all(
+            quiz.submitted_by.map(async (student_id) => {
+                const student = await StudentModel.findById(student_id);
+                if (!student) {
+                    return res.status(404).send("Student not found");
+                }
+                return {
+                    student_id: student_id,
+                    student_name: student.name,
+                    grade: student.quiz_grades.find(
+                        (grade) => grade.quiz == quiz_id
+                    ).grade,
+                };
+            })
+        );
+
+        results.forEach((result) => {
+            if (result.grade > class_highest) {
+                class_highest = result.grade;
+            }
+        });
+
+        res.status(200).json({
+            message: "Quiz results found successfully",
+            results,
+            class_highest,
+            total_submissions,
+        });
+    } catch (error) {
+        console.error("Failed to fetch the quiz results for teacher:", error);
+        res.status(500).send("Internal server error");
+    }
+};
+
+const getQuizResultsForStudent = async (req, res) => {
+    try {
+        const { quiz_id } = req.params;
+        const student_id = req.decoded.id;
+
+        const quiz = await QuizModel.findById(quiz_id);
+        if (!quiz) {
+            return res.status(404).send("Quiz not found");
+        }
+
+        const student = await StudentModel.findById(student_id);
+        if (!student) {
+            return res.status(404).send("Student not found");
+        }
+
+        if (!quiz.submitted_by.includes(student_id)) {
+            return res.status(400).send("Student has not submitted the quiz");
+        }
+
+        // for the quiz get all questions and student response to each and grade and total grade
+        let results = await Promise.all(
+            quiz.questions.map(async (question_id) => {
+                const question = await QuestionModel.findById(question_id);
+                if (!question) {
+                    return res.status(404).send("Question not found");
+                }
+                const response = question.responses.find(
+                    (response) => response.student == student_id
+                );
+                return {
+                    question_id: question_id,
+                    true_answer: question.answer,
+                    true_grade: question.true_grade,
+                    question: question.question,
+                    student_answer: response.student_answer,
+                    grade: response.grade,
+                };
+            })
+        );
+
+        res.status(200).json({
+            message: "Quiz results found successfully",
+            results,
+        });
+    } catch (error) {
+        console.error("Failed to fetch the quiz results for student:", error);
+        res.status(500).send("Internal server error");
+    }
+};
+
 module.exports = {
-  createQuiz,
-  getQuizzesByClass,
-  deleteQuiz,
-  getRecentQuizForStudent,
-  getRecentQuizForTeacher,
-  getNextQuizForStudent,
-  getNextQuizForTeacher,
-  activateQuiz,
-  deactivateQuiz,
-  submitQuiz,
+    createQuiz,
+    getQuizzesByClass,
+    deleteQuiz,
+    getRecentQuizForStudent,
+    getRecentQuizForTeacher,
+    getNextQuizForStudent,
+    getNextQuizForTeacher,
+    activateQuiz,
+    deactivateQuiz,
+    submitQuiz,
+    getQuizResultsForTeacher,
+    getQuizResultsForStudent,
 };
 
 // const getNextQuizForStudent = async (req, res) => {

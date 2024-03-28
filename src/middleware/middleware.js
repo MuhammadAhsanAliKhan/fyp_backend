@@ -20,16 +20,31 @@ const extractToken = (req, res, next) => {
 
 const checkRole = (role) => {
     return (req, res, next) => {
-        const student = Student.findById(req.decoded.id);
-        const teacher = Teacher.findById(req.decoded.id);
-        if (role === "student" && !student) {
-            return res.status(403).json({ msg: "Forbidden" });
-        }
-        if (role === "teacher" && !teacher) {
-            return res.status(403).json({ msg: "Forbidden" });
+        let model;
+        let msg;
+        if (role === "student") {
+            model = Student;
+            msg = "Unauthorized: Must be student";
+        } else if (role === "teacher") {
+            model = Teacher;
+            msg = "Unauthorized: Must be teacher";
+        } else {
+            return res.status(403).json({ msg: "Invalid role" });
         }
 
-        next();
+        model
+            .findById(req.decoded.id)
+            .then((user) => {
+                if (user) {
+                    next(); // User found, proceed to next middleware
+                } else {
+                    return res.status(403).json({ msg: "Unauthorized" });
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                return res.status(500).json({ msg: "Internal Server Error" });
+            });
     };
 };
 
