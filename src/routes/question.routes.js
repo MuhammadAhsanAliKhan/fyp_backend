@@ -19,6 +19,8 @@ questionRoute.route('/label/:label').get(questionController.GetFilteredQuestions
 
 module.exports = questionRoute;
 
+questionRoute.get('/unique-labels', questionController.GetUnqiueLabels);
+
 
 
 

@@ -86,6 +86,15 @@ const GetFilteredQuestions = async (req, res) => {
     }
 };
 
+const GetUnqiueLabels =async (req, res) => {
+    try {
+      const uniqueLabels = await Question.distinct('label');
+      res.json({ labels: uniqueLabels });
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to fetch unique labels' });
+    }
+  };
+
 
 module.exports = {
     createQuestions,
@@ -94,5 +103,6 @@ module.exports = {
     updateQuestion,
     deleteQuestion,
     GetFilteredQuestions,
+    GetUnqiueLabels,
 
 }
