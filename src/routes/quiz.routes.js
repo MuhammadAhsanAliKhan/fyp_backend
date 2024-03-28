@@ -32,13 +32,31 @@ quizRoutes
     .route("/nextQuizForTeacher")
     .post(quizController.getNextQuizForTeacher);
 
-quizRoutes.route('/activateQuiz').put(quizController.activateQuiz);
+quizRoutes.route("/activateQuiz").put(quizController.activateQuiz);
 
-quizRoutes.route('/deactivateQuiz').put(quizController.deactivateQuiz);
+quizRoutes.route("/deactivateQuiz").put(quizController.deactivateQuiz);
 
 // POST route to submit a quiz and grade all answers through Flask API
 quizRoutes
     .route("/submit/:quiz_id")
     .post(extractToken, quizController.submitQuiz);
+
+// POST route to get the quiz results of student for teacher view just scores no answers
+quizRoutes
+    .route("/:quiz_id/TeacherResults")
+    .get(
+        extractToken,
+        checkRole("teacher"),
+        quizController.getQuizResultsForTeacher
+    );
+
+// POST route to get the quiz results of student for student view with answers
+quizRoutes
+    .route("/:quiz_id/studentResults")
+    .get(
+        extractToken,
+        checkRole("student"),
+        quizController.getQuizResultsForStudent
+    );
 
 module.exports = quizRoutes;
