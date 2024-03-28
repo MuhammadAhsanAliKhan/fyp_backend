@@ -14,8 +14,16 @@ const signUp = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { email, password, name, age, cgpa, admission_date } = req.body;
-        const file = req.file;
+        const {
+            email,
+            password,
+            name,
+            age,
+            cgpa,
+            admission_date,
+            profile_picture,
+        } = req.body;
+        const file = profile_picture;
 
         console.log(req.body);
 
@@ -69,7 +77,7 @@ const profile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        console.log("student/updateProfile");
+        console.log("student/profile");
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -86,7 +94,7 @@ const updateProfile = async (req, res) => {
             updateFields.admission_date = req.body.admission_date;
 
         // Check if a file is uploaded and add it to the updateFields object
-        if (req.file) {
+        if (req.body.profile_picture) {
             updateFields.profile_picture = {
                 filename: req.file.filename,
                 path: req.file.path,

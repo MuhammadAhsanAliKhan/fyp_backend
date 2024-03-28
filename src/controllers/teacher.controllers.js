@@ -12,8 +12,8 @@ const signUp = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { email, password, name, age } = req.body;
-        const file = req.file;
+        const { email, password, name, age, profile_picture } = req.body;
+        const file = profile_picture;
 
         console.log("----", req.body);
         const existingUser = await Teacher.findOne({ email });
@@ -59,7 +59,7 @@ const profile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        console.log("teacher/updateProfile");
+        console.log("teacher/pofile");
 
         let teacher = await Teacher.findById(req.decoded.id).select(
             "-password"
@@ -72,7 +72,7 @@ const updateProfile = async (req, res) => {
         let updateFields = {};
         if (req.body.name) updateFields.name = req.body.name;
         if (req.body.age) updateFields.age = req.body.age;
-        if (req.file) {
+        if (req.body.profile_picture) {
             updateFields.profile_picture = {
                 filename: req.file.filename,
                 path: req.file.path,
