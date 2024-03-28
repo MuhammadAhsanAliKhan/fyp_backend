@@ -33,19 +33,28 @@ const getQuestionById = async (req, res) => {
 };
 
 const updateQuestion = async (req, res) => {
+    const { questionId, question, answer, label } = req.body;
+    let updateFields = {};
+
+    // Dynamically adding fields to updateFields object if they are provided
+    if (question) updateFields.question = question;
+    if (answer) updateFields.answer = answer;
+    if (label) updateFields.label = label
+
     try {
-        const { id } = req.params;
-        const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, {
-            new: true,
-            runValidators: true,
-        });
-        if (updatedQuestion) {
-            res.json({ message: 'Question updated successfully', data: updatedQuestion });
+        const result = await Question.findByIdAndUpdate(questionId,
+            { $set: updateFields },
+            { new: true } // Option to return the document after update
+        );
+
+        if (result) {
+            res.send(`Question with ID ${questionId} has been successfully updated.`);
         } else {
-            res.status(404).json({ message: 'Question not found' });
+            res.send('No question found with the provided ID.');
         }
-    } catch (err) {
-        res.status(400).json({ message: err.message });
+    } catch (error) {
+        res.status(500).send('An error occurred while updating the question.');
+        console.error(error);
     }
 };
 

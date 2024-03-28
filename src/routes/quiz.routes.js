@@ -32,6 +32,10 @@ quizRoutes
     .route("/nextQuizForTeacher")
     .post(quizController.getNextQuizForTeacher);
 
+quizRoutes.route('/activateQuiz').put(quizController.activateQuiz);
+
+quizRoutes.route('/deactivateQuiz').put(quizController.deactivateQuiz);
+
 // POST route to submit a quiz and grade all answers through Flask API
 quizRoutes
     .route("/submit/:quiz_id")
