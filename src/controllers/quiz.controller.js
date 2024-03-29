@@ -356,6 +356,44 @@ const getNextQuizForTeacher = async (req, res) => {
     }
 };
 
+const getQuizQuestionsForStudent = async (req, res) => {
+    try {
+        const { quiz_id } = req.params;
+        const quiz = await QuizModel.findById(quiz_id)
+            .select("-submitted_by -is_active -is_relesead")
+            .populate("questions", "-answer -true_grade -responses")
+            .exec();
+        if (!quiz) {
+            return res.status(404).send("Quiz not found");
+        }
+
+        // Check if the student is enrolled in the class of the quiz
+        const student_id = req.decoded.id;
+        const classFound = await ClassModel.findById(quiz.class);
+        if (!classFound.students.includes(student_id)) {
+            return res.status(400).send("Student not enrolled in the class");
+        }
+
+        // Check if the quiz has ended or not started
+        const currentTime = new Date();
+        if (quiz.start_time > currentTime) {
+            return res.status(400).send("Quiz has not started yet");
+        }
+
+        if (quiz.end_time < currentTime) {
+            return res.status(400).send("Quiz has ended");
+        }
+
+        res.status(200).json({
+            message: "Quiz fetched successfully",
+            quiz,
+        });
+    } catch (error) {
+        console.error("Failed to fetch the quiz:", error);
+        res.status(500).send("Internal server error");
+    }
+};
+
 const submitQuiz = async (req, res) => {
     try {
         console.log("submit/:quiz_id");
@@ -381,8 +419,18 @@ const submitQuiz = async (req, res) => {
             return res.status(404).send("Student not found");
         }
 
-        // Check if the quiz has ended
+        // Check if the student is enrolled in the class of the quiz
+        const classFound = await ClassModel.findById(quiz.class);
+        if (!classFound.students.includes(student_id)) {
+            return res.status(400).send("Student not enrolled in the class");
+        }
+
+        // Check if the quiz has ended or not started
         const currentTime = new Date();
+
+        if (quiz.start_time > currentTime) {
+            return res.status(400).send("Quiz has not started yet");
+        }
         if (quiz.end_time < currentTime) {
             return res.status(400).send("Quiz has ended");
         }
@@ -582,6 +630,7 @@ module.exports = {
     getNextQuizForTeacher,
     activateQuiz,
     deactivateQuiz,
+    getQuizQuestionsForStudent,
     submitQuiz,
     getQuizResultsForTeacher,
     getQuizResultsForStudent,
