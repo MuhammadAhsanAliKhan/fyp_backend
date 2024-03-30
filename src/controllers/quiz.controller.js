@@ -91,10 +91,7 @@ const deleteQuiz = async (req, res) => {
 
 const getRecentQuizForStudent = async (req, res) => {
     try {
-        const { student_id } = req.body;
-        if (!student_id) {
-            return res.status(400).send("Student ID is required");
-        }
+        const student_id = req.decoded.id;
 
         // Find the classes the student is enrolled in
         const classes = await ClassModel.find({ students: student_id });
@@ -149,10 +146,7 @@ const getRecentQuizForStudent = async (req, res) => {
 
 const getRecentQuizForTeacher = async (req, res) => {
     try {
-        const { teacher_id } = req.body;
-        if (!teacher_id) {
-            return res.status(400).send("Teacher ID is required");
-        }
+        const teacher_id = req.decoded.id;
 
         // Find classes taught by the teacher
         const classes = await ClassModel.find({ teacher: teacher_id });
@@ -209,10 +203,7 @@ const getRecentQuizForTeacher = async (req, res) => {
 
 const getNextQuizForStudent = async (req, res) => {
     try {
-        const { student_id } = req.body;
-        if (!student_id) {
-            return res.status(400).send("Student ID is required");
-        }
+        const student_id = req.decoded.id;
 
         // Find the classes the student is enrolled in
         const classes = await ClassModel.find({ students: student_id });
@@ -310,10 +301,7 @@ const deactivateQuiz = async (req, res) => {
 
 const getNextQuizForTeacher = async (req, res) => {
     try {
-        const { teacher_id } = req.body;
-        if (!teacher_id) {
-            return res.status(400).send("Teacher ID is required");
-        }
+        const teacher_id = req.decoded.id;
 
         // Find the classes taught by the teacher
         const classes = await ClassModel.find({ teacher: teacher_id });

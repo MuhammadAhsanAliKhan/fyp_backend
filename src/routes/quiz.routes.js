@@ -15,22 +15,22 @@ quizRoutes.route("/deleteQuiz").delete(quizController.deleteQuiz);
 // POST route to get the most recent quiz for a student
 quizRoutes
     .route("/recentQuizForStudent")
-    .post(quizController.getRecentQuizForStudent);
+    .post(extractToken, quizController.getRecentQuizForStudent);
 
 // POST route to get the most recent quiz for a teacher
 quizRoutes
     .route("/recentQuizForTeacher")
-    .post(quizController.getRecentQuizForTeacher);
+    .post(extractToken, quizController.getRecentQuizForTeacher);
 
 // POST route to get the next quiz for a student
 quizRoutes
     .route("/nextQuizForStudent")
-    .post(quizController.getNextQuizForStudent);
+    .post(extractToken, quizController.getNextQuizForStudent);
 
 // POST route to get the next quiz for a teacher
 quizRoutes
     .route("/nextQuizForTeacher")
-    .post(quizController.getNextQuizForTeacher);
+    .post(extractToken, quizController.getNextQuizForTeacher);
 
 quizRoutes.route("/activateQuiz").put(quizController.activateQuiz);
 
