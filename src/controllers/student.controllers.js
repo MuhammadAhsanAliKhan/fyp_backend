@@ -3,7 +3,6 @@ const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Class = require("../models/class.model");
-// const ClassStudent = require("../models/classStudent.model");
 
 const signUp = async (req, res) => {
     try {
@@ -21,7 +20,14 @@ const signUp = async (req, res) => {
 
         const existingUser = await Student.findOne({ email });
         if (existingUser) {
-            return res.status(409).json({ msg: "User already exists" });
+            return res
+                .status(409)
+                .json({ msg: "User with this email already exists" });
+        }
+
+        const existingErp = await Student.findOne({ erp });
+        if (existingErp) {
+            return res.status(409).json({ msg: "ERP already exists" });
         }
 
         console.log("Creating new user");
@@ -78,6 +84,7 @@ const updateProfile = async (req, res) => {
 
         // Check if the fields exist in the request body and add them to the updateFields object
         if (req.body.name) updateFields.name = req.body.name;
+        if (req.body.erp) updateFields.erp = req.body.erp;
         if (req.body.password) {
             const hashedPassword = await bcrypt.hash(req.body.password, 10);
             updateFields.password = hashedPassword;
@@ -94,6 +101,18 @@ const updateProfile = async (req, res) => {
         let student = await Student.findById(req.decoded.id);
         if (!student) {
             return res.status(404).json({ msg: "User not found" });
+        }
+
+        const existingErp = await Student.findOne({
+            erp: updateFields.erp,
+        });
+        if (
+            existingErp &&
+            existingErp._id.toString() !== student._id.toString()
+        ) {
+            return res
+                .status(409)
+                .json({ msg: "ERP already exists for different user" });
         }
 
         console.log("updateFields:", updateFields);
