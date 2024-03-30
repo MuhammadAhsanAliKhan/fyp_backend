@@ -28,7 +28,7 @@ teacherRoutes
     .put(
         upload.single("profile_picture"),
         extractToken,
-        [body("name").isString(), body("age").isNumeric()],
+        [body("name").isString()],
         teacherController.updateProfile
     );
 

@@ -75,4 +75,14 @@ loginRoutes
         }
     );
 
+loginRoutes.route("/logout").post(extractToken, async (req, res) => {
+    try {
+        console.log("/logout");
+
+        res.status(200).json({ msg: "User logged out successfully" });
+    } catch (error) {
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
+
 module.exports = loginRoutes;

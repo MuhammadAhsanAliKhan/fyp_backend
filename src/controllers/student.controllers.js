@@ -14,15 +14,7 @@ const signUp = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const {
-            email,
-            password,
-            name,
-            age,
-            cgpa,
-            admission_date,
-            profile_picture,
-        } = req.body;
+        const { email, password, name, erp, profile_picture } = req.body;
         const file = profile_picture;
 
         console.log(req.body);
@@ -39,9 +31,7 @@ const signUp = async (req, res) => {
             email,
             password: hashedPassword,
             name,
-            age,
-            cgpa,
-            admission_date,
+            erp,
             profile_picture: {
                 filename: file.filename,
                 path: file.path,
@@ -88,10 +78,10 @@ const updateProfile = async (req, res) => {
 
         // Check if the fields exist in the request body and add them to the updateFields object
         if (req.body.name) updateFields.name = req.body.name;
-        if (req.body.age) updateFields.age = req.body.age;
-        if (req.body.cgpa) updateFields.cgpa = req.body.cgpa;
-        if (req.body.admission_date)
-            updateFields.admission_date = req.body.admission_date;
+        if (req.body.password) {
+            const hashedPassword = await bcrypt.hash(req.body.password, 10);
+            updateFields.password = hashedPassword;
+        }
 
         // Check if a file is uploaded and add it to the updateFields object
         if (req.body.profile_picture) {
@@ -146,9 +136,9 @@ const joinClass = async (req, res) => {
 
         const join_code = req.body.class_code;
 
-        // dont select password, email, age, cgpa
+        // dont select password, email, age
         let student = await Student.findById(req.decoded.id).select(
-            "-password -email -age -cgpa"
+            "-password -email -age"
         );
         if (!student) {
             return res.status(404).json({ msg: "User not found" });
@@ -187,9 +177,9 @@ const leaveClass = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // dont select password, email, age, cgpa
+        // dont select password, email, age
         let student = await Student.findById(req.decoded.id).select(
-            "-password -email -age -cgpa"
+            "-password -email -age"
         );
         if (!student) {
             return res.status(404).json({ msg: "User not found" });

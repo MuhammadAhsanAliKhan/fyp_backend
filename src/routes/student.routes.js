@@ -31,8 +31,7 @@ studentRoutes
         [
             body("name").isString().optional(),
             body("age").isNumeric().optional(),
-            body("cgpa").isNumeric().optional(),
-            body("admission_date").isDate().optional(),
+            body("erp").isNumeric().optional(),
         ],
         studentController.updateProfile
     );
