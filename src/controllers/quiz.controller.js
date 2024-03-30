@@ -533,6 +533,7 @@ const getQuizResultsForTeacher = async (req, res) => {
                 return {
                     student_id: student_id,
                     student_name: student.name,
+                    erp: student.erp,
                     grade: student.quiz_grades.find(
                         (grade) => grade.quiz == quiz_id
                     ).grade,
