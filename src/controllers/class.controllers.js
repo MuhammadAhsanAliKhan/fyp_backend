@@ -88,8 +88,8 @@ const getClass = async (req, res) => {
         }
 
         let class_ = await Class.findById(req.params.id)
-            .populate("teacher", "name email")
-            .populate("students", "name email")
+            .populate("teacher", "name email profile_picture")
+            .populate("students", "name email erp profile_picture")
             .populate("quizzes", "title");
 
         if (!class_) {
@@ -168,7 +168,7 @@ const getClassStudents = async (req, res) => {
 
         const class_ = await Class.findById(req.params.id).populate(
             "students",
-            "name email classes profile_picture"
+            "name email classes profile_picture erp"
         );
 
         console.log("class:", class_);

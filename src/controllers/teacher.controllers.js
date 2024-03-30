@@ -12,7 +12,7 @@ const signUp = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { email, password, name, age, profile_picture } = req.body;
+        const { email, password, name, profile_picture } = req.body;
         const file = profile_picture;
 
         console.log("----", req.body);
@@ -27,7 +27,6 @@ const signUp = async (req, res) => {
             email,
             password: hashedPassword,
             name,
-            age,
             profile_picture: {
                 filename: file.filename,
                 path: file.path,
@@ -71,7 +70,10 @@ const updateProfile = async (req, res) => {
 
         let updateFields = {};
         if (req.body.name) updateFields.name = req.body.name;
-        if (req.body.age) updateFields.age = req.body.age;
+        if (req.body.password) {
+            const hashedPassword = await bcrypt.hash(req.body.password, 10);
+            updateFields.password = hashedPassword;
+        }
         if (req.body.profile_picture) {
             updateFields.profile_picture = {
                 filename: req.file.filename,

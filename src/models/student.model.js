@@ -34,16 +34,8 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    age: {
+    erp: {
         type: Number,
-        required: false,
-    },
-    cgpa: {
-        type: Number,
-        required: false,
-    },
-    admission_date: {
-        type: Date,
         required: false,
     },
     profile_picture: {
