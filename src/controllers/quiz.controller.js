@@ -3,6 +3,7 @@ const ClassModel = require("../models/class.model");
 const QuizModel = require("../models/quiz.model");
 const StudentModel = require("../models/student.model");
 const axios = require("axios");
+const Quiz = require("../models/quiz.model");
 
 const createQuiz = async (req, res) => {
     try {
@@ -54,7 +55,8 @@ const createQuiz = async (req, res) => {
 
 const getQuizzesByClass = async (req, res) => {
     try {
-        const { class_id } = req.body;
+        const class_id = req.params.classId;
+        console.log("ClassId",class_id);
         const classFound = await ClassModel.findById(class_id);
         if (!classFound) {
             return res.status(404).send("Class not found");
@@ -183,7 +185,8 @@ const getRecentQuizForTeacher = async (req, res) => {
             },
             { $sort: { timeDifference: 1 } },
             { $limit: 1 },
-        ]).exec();
+        ]).populate("class")
+        .exec();
 
         if (recentQuiz.length === 0) {
             return res
@@ -219,7 +222,7 @@ const getNextQuizForStudent = async (req, res) => {
         const currentTime = new Date();
         console.log("Current Time", currentTime);
 
-        // Find the next quiz for these classes
+        // Find the next quiz for these classes (Teacher ne release kardia ho but quiz active na ho)
         const quiz = await QuizModel.find({
             class: { $in: classIds },
             is_active: false,
@@ -227,7 +230,9 @@ const getNextQuizForStudent = async (req, res) => {
             start_time: { $gt: currentTime },
         })
             .sort({ start_time: 1 }) // Ensures the closest future quiz comes first
-            .limit(1);
+            .limit(1)
+            .populate('class') // Populate the class reference. Ensure 'class' is the correct path in your QuizModel schema
+            .exec();
 
         console.log("Quiz", quiz);
 
@@ -252,7 +257,7 @@ const activateQuiz = async (req, res) => {
         const currentTime = new Date(time); // Convert time to Date object if it's not already
 
         // Find and update quizzes
-        const result = await Quiz.updateMany(
+        const result = await QuizModel.updateMany(
             {
                 class: courseId,
                 start_time: { $gte: currentTime },
@@ -280,7 +285,7 @@ const deactivateQuiz = async (req, res) => {
 
     try {
         // Find the quiz by ID and update its is_active field to false
-        const result = await Quiz.findByIdAndUpdate(
+        const result = await QuizModel.findByIdAndUpdate(
             quizId,
             { $set: { is_active: false } },
             { new: true } // This option returns the document after update was applied
@@ -317,16 +322,16 @@ const getNextQuizForTeacher = async (req, res) => {
         const currentTime = new Date();
 
         // Find the next quiz for these classes
-        const quiz = await Quiz.find({
+        const quiz = await QuizModel.find({
             class: { $in: classIds },
             is_active: false,
-            is_relesead: false, // iski spelling ghalat hai
+            is_relesead: true, // iski spelling ghalat hai
             start_time: { $gt: currentTime },
         })
             .sort({ start_time: 1 }) // Finds the closest future quiz
             .limit(1)
-            .populate("Class") // Adjust based on your need to populate related data
-            .populate("Question"); // For populating related questions
+            .populate("class") // Adjust based on your need to populate related data
+            .populate("questions"); // For populating related questions
 
         if (!quiz.length) {
             return res
@@ -609,6 +614,22 @@ const getQuizResultsForStudent = async (req, res) => {
     }
 };
 
+const updateQuiz = async (req, res) => {
+  const { quizId } = req.params;
+  const updateData = req.body;
+
+  try {
+    const updatedQuiz = await Quiz.findByIdAndUpdate(quizId, updateData, { new: true });
+    if (!updatedQuiz) {
+      return res.status(404).send('Quiz not found');
+    }
+    res.status(200).json({ message: 'Quiz updated successfully', quiz: updatedQuiz });
+  } catch (error) {
+    console.error('Error updating quiz:', error);
+    res.status(500).send('Internal server error');
+  }
+};
+
 module.exports = {
     createQuiz,
     getQuizzesByClass,
@@ -623,51 +644,5 @@ module.exports = {
     submitQuiz,
     getQuizResultsForTeacher,
     getQuizResultsForStudent,
+    updateQuiz,
 };
-
-// const getNextQuizForStudent = async (req, res) => {
-//   try {
-//     const { student_id } = req.body;
-//     if (!student_id) {
-//       return res.status(400).send("Student ID is required");
-//     }
-
-//     // Find the classes the student is enrolled in
-//     const classes = await ClassModel.find({ students: student_id });
-//     console.log("Classes", classes);
-//     if (!classes.length) {
-//       return res.status(404).send("Student not found in any classes");
-//     }
-
-//     // Extract class IDs for querying quizzes
-//     const classIds = classes.map(c => c._id);
-//     console.log("Class Ids", classIds);
-
-//     const currentTime = new Date();
-//     console.log("Current Time", currentTime);
-
-//     // Find the next quiz for these classes
-//     const quiz = await QuizModel.find({
-//       class: { $in: classIds },
-//       is_active: false,
-//       is_released: false,
-//       // start_time: { $gt: currentTime }
-//     })
-//       // .sort({ start_time: 1 }) // Ensures the closest future quiz comes first
-//       // .limit(1);
-//       // .populate('Class') // Adjust based on your need to populate related data
-//       // .populate('Question'); // Example of populating related questions
-
-//     if (!quiz.length) {
-//       return res.status(404).send("No next quiz found for the student.");
-//     }
-
-//     res.status(200).json({
-//       message: "Next quiz found successfully",
-//       quiz: quiz[0]
-//     });
-//   } catch (error) {
-//     console.error('Failed to fetch the next quiz for student:', error);
-//     res.status(500).send('Internal server error');
-//   }
-// };

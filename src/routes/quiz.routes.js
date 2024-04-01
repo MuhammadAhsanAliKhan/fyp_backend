@@ -7,7 +7,7 @@ const { extractToken, checkRole } = require("../middleware/middleware");
 quizRoutes.route("/createQuiz").post(quizController.createQuiz);
 
 // GET route to fetch quizzes by class ID
-quizRoutes.route("/quizzesByClass").get(quizController.getQuizzesByClass);
+quizRoutes.route("/quizzesByClass/:classId").post(quizController.getQuizzesByClass);
 
 // DELETE route to delete a quiz by its ID
 quizRoutes.route("/deleteQuiz").delete(quizController.deleteQuiz);
@@ -63,5 +63,9 @@ quizRoutes
         checkRole("student"),
         quizController.getQuizResultsForStudent
     );
+
+quizRoutes
+    .route("/api/quizzes/:quizId")
+    .patch(quizController.updateQuiz);
 
 module.exports = quizRoutes;
