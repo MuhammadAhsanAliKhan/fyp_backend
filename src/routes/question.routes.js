@@ -9,9 +9,9 @@ questionRoute
 
 questionRoute.route('/getQuestion').get(questionController.getQuestions);
 
-questionRoute.route('/getByID/:id').get(questionController.getQuestions);
+questionRoute.route('/getByID/:id').get(questionController.getQuestionById);
 
-questionRoute.route('/updateQuestion/:id').put(questionController.getQuestionById);
+questionRoute.route('/updateQuestion/:id').put(questionController.updateQuestion);
 
 questionRoute.route('/deleteQuestion/:id').delete(questionController.deleteQuestion);
 
