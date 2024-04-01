@@ -93,8 +93,8 @@ const updateProfile = async (req, res) => {
         // Check if a file is uploaded and add it to the updateFields object
         if (req.body.profile_picture) {
             updateFields.profile_picture = {
-                filename: req.file.filename,
-                path: req.file.path,
+                filename: req.body.profile_picture.filename,
+                path: req.body.profile_picture.path,
             };
         }
 
