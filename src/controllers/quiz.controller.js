@@ -34,6 +34,12 @@ const createQuiz = async (req, res) => {
         const updatedClass = await ClassModel.findByIdAndUpdate(class_id, {
             $push: { quizzes: quiz._id },
         });
+
+        const course = await ClassModel.findById(class_id);
+        if (course) {
+            course.quizCreated += result.modifiedCount;
+            await course.save();
+        }
         console.log("class updated");
 
         if (!updatedClass) {
@@ -260,16 +266,23 @@ const activateQuiz = async (req, res) => {
         const result = await QuizModel.updateMany(
             {
                 class: courseId,
-                start_time: { $gte: currentTime },
+                start_time: { $lte: currentTime },
             },
             {
-                $set: { is_active: true },
+                $set: { is_active: true, is_relesead: true},
             }
         );
 
+        // Find the course and increment the quiz created variable
+        const course = await ClassModel.findById(courseId);
+        if (course) {
+            course.quizReleased += result.modifiedCount;
+            await course.save();
+        }
+
         if (result.modifiedCount > 0) {
             res.status(200).json({
-                Message: "Successfully updated ${result.modifiedCount} quizzes",
+                Message: "Successfully activated ${result.modifiedCount} quizzes",
             });
         } else {
             res.send("No quizzes were updated. Please check your inputs.");
@@ -281,25 +294,31 @@ const activateQuiz = async (req, res) => {
 };
 
 const deactivateQuiz = async (req, res) => {
-    const { quizId } = req.body; // Extract quizId from request body
+    const { courseId, time } = req.body; // Extract courseId and time from request body
 
     try {
-        // Find the quiz by ID and update its is_active field to false
-        const result = await QuizModel.findByIdAndUpdate(
-            quizId,
-            { $set: { is_active: false } },
-            { new: true } // This option returns the document after update was applied
+        const currentTime = new Date(time); // Convert time to Date object if it's not already
+
+        // Find and update quizzes
+        const result = await QuizModel.updateMany(
+            {
+                class: courseId,
+                end_time: { $lte: currentTime },
+            },
+            {
+                $set: { is_active: false},
+            }
         );
 
-        if (result) {
-            res.status(200).send(
-                `Quiz with ID ${quizId} has been successfully deactivated.`
-            );
+        if (result.modifiedCount > 0) {
+            res.status(200).json({
+                Message: "Successfully deactivated ${result.modifiedCount} quizzes",
+            });
         } else {
-            res.send("No quiz found with the provided ID.");
+            res.send("No quizzes were updated. Please check your inputs.");
         }
     } catch (error) {
-        res.status(500).send("An error occurred while deactivating the quiz.");
+        res.status(500).send("An error occurred while updating the quizzes.");
         console.error(error);
     }
 };
@@ -325,7 +344,7 @@ const getNextQuizForTeacher = async (req, res) => {
         const quiz = await QuizModel.find({
             class: { $in: classIds },
             is_active: false,
-            is_relesead: true, // iski spelling ghalat hai
+            is_relesead: false, // iski spelling ghalat hai
             start_time: { $gt: currentTime },
         })
             .sort({ start_time: 1 }) // Finds the closest future quiz
@@ -646,3 +665,28 @@ module.exports = {
     getQuizResultsForStudent,
     updateQuiz,
 };
+
+
+// const deactivateQuiz = async (req, res) => {
+//     const { quizId } = req.body; // Extract quizId from request body
+
+//     try {
+//         // Find the quiz by ID and update its is_active field to false
+//         const result = await QuizModel.findByIdAndUpdate(
+//             quizId,
+//             { $set: { is_active: false } },
+//             { new: true } // This option returns the document after update was applied
+//         );
+
+//         if (result) {
+//             res.status(200).send(
+//                 `Quiz with ID ${quizId} has been successfully deactivated.`
+//             );
+//         } else {
+//             res.send("No quiz found with the provided ID.");
+//         }
+//     } catch (error) {
+//         res.status(500).send("An error occurred while deactivating the quiz.");
+//         console.error(error);
+//     }
+// };
