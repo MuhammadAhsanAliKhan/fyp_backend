@@ -66,4 +66,8 @@ quizRoutes
         quizController.getQuizResultsForStudent
     );
 
+quizRoutes
+    .route("/api/quizzes/:quizId")
+    .patch(quizController.updateQuiz);
+
 module.exports = quizRoutes;
