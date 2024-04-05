@@ -291,11 +291,12 @@ const activateQuiz = async (req, res) => {
         );
 
         // Find the course and increment the quiz created variable
-        const course = await ClassModel.findById({ _id: class_id });
+        const course = await ClassModel.findById({ _id: courseId });
         if (course) {
             console.log("Course", course);
-            course.quizCreated = course.quizCreated + 1;
+            course.quizReleased = course.quizReleased + 1;
             await course.save();
+            console.log("Course Updated", course);
         }
 
         if (result.modifiedCount > 0) {
@@ -408,11 +409,12 @@ const getQuizQuestionsForStudent = async (req, res) => {
 
         // Check if the quiz has ended or not started
         const currentTime = new Date();
-        if (quiz.start_time > currentTime) {
+        const updatedTime = newDate(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
         }
 
-        if (quiz.end_time < currentTime) {
+        if (quiz.end_time < updatedTime) {
             return res.status(400).send("Quiz has ended");
         }
 
@@ -459,11 +461,12 @@ const submitQuiz = async (req, res) => {
 
         // Check if the quiz has ended or not started
         const currentTime = new Date();
+        const updatedTime = newDate(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
-        if (quiz.start_time > currentTime) {
+        if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
         }
-        if (quiz.end_time < currentTime) {
+        if (quiz.end_time < updatedTime) {
             return res.status(400).send("Quiz has ended");
         }
 
@@ -700,27 +703,3 @@ module.exports = {
     getQuizResultsForStudent,
     updateQuiz,
 };
-
-// const deactivateQuiz = async (req, res) => {
-//     const { quizId } = req.body; // Extract quizId from request body
-
-//     try {
-//         // Find the quiz by ID and update its is_active field to false
-//         const result = await QuizModel.findByIdAndUpdate(
-//             quizId,
-//             { $set: { is_active: false } },
-//             { new: true } // This option returns the document after update was applied
-//         );
-
-//         if (result) {
-//             res.status(200).send(
-//                 `Quiz with ID ${quizId} has been successfully deactivated.`
-//             );
-//         } else {
-//             res.send("No quiz found with the provided ID.");
-//         }
-//     } catch (error) {
-//         res.status(500).send("An error occurred while deactivating the quiz.");
-//         console.error(error);
-//     }
-// };
