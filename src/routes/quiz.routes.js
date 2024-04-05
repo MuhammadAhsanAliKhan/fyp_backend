@@ -7,7 +7,9 @@ const { extractToken, checkRole } = require("../middleware/middleware");
 quizRoutes.route("/createQuiz").post(quizController.createQuiz);
 
 // GET route to fetch quizzes by class ID
-quizRoutes.route("/quizzesByClass/:classId").post(quizController.getQuizzesByClass);
+quizRoutes
+    .route("/quizzesByClass")
+    .get(extractToken, quizController.getQuizzesByClass);
 
 // DELETE route to delete a quiz by its ID
 quizRoutes.route("/deleteQuiz").delete(quizController.deleteQuiz);

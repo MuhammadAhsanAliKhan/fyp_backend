@@ -62,18 +62,33 @@ const createQuiz = async (req, res) => {
 
 const getQuizzesByClass = async (req, res) => {
     try {
-        const class_id = req.params.classId;
-        console.log("ClassId",class_id);
-        const classFound = await ClassModel.findById(class_id);
-        if (!classFound) {
+        console.log("getQuizzesByClass");
+        const _id = req.decoded.id;
+        const role = req.decoded.role;
+        const { class_id } = req.body;
+        let _class = await ClassModel.findById(class_id).populate("quizzes");
+        if (!_class) {
+            console.log("Class not found");
             return res.status(404).send("Class not found");
         } else {
-            console.log("Class mil gayi");
-            const quizzes = await classFound.populate("quizzes");
-            console.log(quizzes);
+            console.log("Class found");
+            // for each quiz check if attempted by student
+            if (role === "student") {
+                console.log("Student");
+                q = _class.quizzes.map((quiz) => {
+                    let quizObj = quiz.toObject(); // Convert Mongoose document to plain JavaScript object
+
+                    quizObj.is_attempted = quiz.submitted_by.includes(_id);
+                    return quizObj;
+                });
+
+                _class = _class.toObject();
+                _class.quizzes = q;
+            }
+
             res.status(200).json({
                 message: "Quizzes found successfully",
-                quizzes: quizzes,
+                class: _class,
             });
         }
     } catch (error) {
@@ -605,6 +620,9 @@ const getQuizResultsForStudent = async (req, res) => {
         }
 
         // for the quiz get all questions and student response to each and grade and total grade
+        // true_grade and grade for overall quiz
+        let total_grade = 0;
+        let total_true_grade = 0;
         let results = await Promise.all(
             quiz.questions.map(async (question_id) => {
                 const question = await QuestionModel.findById(question_id);
@@ -614,6 +632,11 @@ const getQuizResultsForStudent = async (req, res) => {
                 const response = question.responses.find(
                     (response) => response.student == student_id
                 );
+                if (!response) {
+                    return res.status(404).send("Response not found");
+                }
+                total_grade += response.grade;
+                total_true_grade += question.true_grade;
                 return {
                     question_id: question_id,
                     true_answer: question.answer,
@@ -628,6 +651,8 @@ const getQuizResultsForStudent = async (req, res) => {
         res.status(200).json({
             message: "Quiz results found successfully",
             results,
+            total_grade,
+            total_true_grade,
         });
     } catch (error) {
         console.error("Failed to fetch the quiz results for student:", error);
