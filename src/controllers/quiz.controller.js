@@ -35,7 +35,7 @@ const createQuiz = async (req, res) => {
             $push: { quizzes: quiz._id },
         });
 
-        const course = await ClassModel.findById({_id: class_id});
+        const course = await ClassModel.findById({ _id: class_id });
         if (course) {
             console.log("Course", course);
             course.quizCreated = course.quizCreated + 1;
@@ -65,7 +65,7 @@ const getQuizzesByClass = async (req, res) => {
         console.log("getQuizzesByClass");
         const _id = req.decoded.id;
         const role = req.decoded.role;
-        const { class_id } = req.body;
+        const class_id = req.params.class_id;
         let _class = await ClassModel.findById(class_id).populate("quizzes");
         if (!_class) {
             console.log("Class not found");
@@ -207,8 +207,9 @@ const getRecentQuizForTeacher = async (req, res) => {
             },
             { $sort: { timeDifference: 1 } },
             { $limit: 1 },
-        ]).populate("class")
-        .exec();
+        ])
+            .populate("class")
+            .exec();
 
         if (recentQuiz.length === 0) {
             return res
@@ -253,7 +254,7 @@ const getNextQuizForStudent = async (req, res) => {
         })
             .sort({ start_time: 1 }) // Ensures the closest future quiz comes first
             .limit(1)
-            .populate('class') // Populate the class reference. Ensure 'class' is the correct path in your QuizModel schema
+            .populate("class") // Populate the class reference. Ensure 'class' is the correct path in your QuizModel schema
             .exec();
 
         console.log("Quiz", quiz);
@@ -285,12 +286,12 @@ const activateQuiz = async (req, res) => {
                 start_time: { $lte: currentTime },
             },
             {
-                $set: { is_active: true, is_relesead: true},
+                $set: { is_active: true, is_relesead: true },
             }
         );
 
         // Find the course and increment the quiz created variable
-        const course = await ClassModel.findById({_id: class_id});
+        const course = await ClassModel.findById({ _id: class_id });
         if (course) {
             console.log("Course", course);
             course.quizCreated = course.quizCreated + 1;
@@ -299,7 +300,8 @@ const activateQuiz = async (req, res) => {
 
         if (result.modifiedCount > 0) {
             res.status(200).json({
-                Message: "Successfully activated ${result.modifiedCount} quizzes",
+                Message:
+                    "Successfully activated ${result.modifiedCount} quizzes",
             });
         } else {
             res.send("No quizzes were updated. Please check your inputs.");
@@ -323,13 +325,14 @@ const deactivateQuiz = async (req, res) => {
                 end_time: { $lte: currentTime },
             },
             {
-                $set: { is_active: false},
+                $set: { is_active: false },
             }
         );
 
         if (result.modifiedCount > 0) {
             res.status(200).json({
-                Message: "Successfully deactivated ${result.modifiedCount} quizzes",
+                Message:
+                    "Successfully deactivated ${result.modifiedCount} quizzes",
             });
         } else {
             res.send("No quizzes were updated. Please check your inputs.");
@@ -661,19 +664,24 @@ const getQuizResultsForStudent = async (req, res) => {
 };
 
 const updateQuiz = async (req, res) => {
-  const { quizId } = req.params;
-  const updateData = req.body;
+    const { quizId } = req.params;
+    const updateData = req.body;
 
-  try {
-    const updatedQuiz = await Quiz.findByIdAndUpdate(quizId, updateData, { new: true });
-    if (!updatedQuiz) {
-      return res.status(404).send('Quiz not found');
+    try {
+        const updatedQuiz = await Quiz.findByIdAndUpdate(quizId, updateData, {
+            new: true,
+        });
+        if (!updatedQuiz) {
+            return res.status(404).send("Quiz not found");
+        }
+        res.status(200).json({
+            message: "Quiz updated successfully",
+            quiz: updatedQuiz,
+        });
+    } catch (error) {
+        console.error("Error updating quiz:", error);
+        res.status(500).send("Internal server error");
     }
-    res.status(200).json({ message: 'Quiz updated successfully', quiz: updatedQuiz });
-  } catch (error) {
-    console.error('Error updating quiz:', error);
-    res.status(500).send('Internal server error');
-  }
 };
 
 module.exports = {
@@ -692,7 +700,6 @@ module.exports = {
     getQuizResultsForStudent,
     updateQuiz,
 };
-
 
 // const deactivateQuiz = async (req, res) => {
 //     const { quizId } = req.body; // Extract quizId from request body

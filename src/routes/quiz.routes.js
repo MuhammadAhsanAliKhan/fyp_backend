@@ -8,7 +8,7 @@ quizRoutes.route("/createQuiz").post(quizController.createQuiz);
 
 // GET route to fetch quizzes by class ID
 quizRoutes
-    .route("/quizzesByClass")
+    .route("/quizzesByClass/:class_id")
     .get(extractToken, quizController.getQuizzesByClass);
 
 // DELETE route to delete a quiz by its ID
@@ -66,8 +66,6 @@ quizRoutes
         quizController.getQuizResultsForStudent
     );
 
-quizRoutes
-    .route("/api/quizzes/:quizId")
-    .patch(quizController.updateQuiz);
+quizRoutes.route("/api/quizzes/:quizId").patch(quizController.updateQuiz);
 
 module.exports = quizRoutes;
