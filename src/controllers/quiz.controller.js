@@ -35,9 +35,10 @@ const createQuiz = async (req, res) => {
             $push: { quizzes: quiz._id },
         });
 
-        const course = await ClassModel.findById(class_id);
+        const course = await ClassModel.findById({_id: class_id});
         if (course) {
-            course.quizCreated += result.modifiedCount;
+            console.log("Course", course);
+            course.quizCreated = course.quizCreated + 1;
             await course.save();
         }
         console.log("class updated");
@@ -274,9 +275,10 @@ const activateQuiz = async (req, res) => {
         );
 
         // Find the course and increment the quiz created variable
-        const course = await ClassModel.findById(courseId);
+        const course = await ClassModel.findById({_id: class_id});
         if (course) {
-            course.quizReleased += result.modifiedCount;
+            console.log("Course", course);
+            course.quizCreated = course.quizCreated + 1;
             await course.save();
         }
 
