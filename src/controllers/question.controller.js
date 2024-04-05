@@ -33,13 +33,14 @@ const getQuestionById = async (req, res) => {
 };
 
 const updateQuestion = async (req, res) => {
-    const { questionId, question, answer, label } = req.body;
+    const { questionId, question, answer, label, true_grade } = req.body;
     let updateFields = {};
 
     // Dynamically adding fields to updateFields object if they are provided
     if (question) updateFields.question = question;
     if (answer) updateFields.answer = answer;
-    if (label) updateFields.label = label
+    if (label) updateFields.label = label;
+    if (true_grade) updateFields.true_grade = true_grade;
 
     try {
         const result = await Question.findByIdAndUpdate(questionId,
