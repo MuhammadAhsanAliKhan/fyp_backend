@@ -221,15 +221,13 @@ const getNextQuizForStudent = async (req, res) => {
         console.log("Class Ids", classIds);
 
         const currentTime = new Date();
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
-        console.log("Current Time", currentTime);
 
         // Find the next quiz for these classes (Teacher ne release kardia ho but quiz active na ho)
         const quiz = await QuizModel.find({
             class: { $in: classIds },
             is_active: false,
             is_relesead: false, // Spelling ka masla hai sahi karna hai
-            start_time: { $gt: updatedTime },
+            start_time: { $gt: currentTime },
         })
             .sort({ start_time: 1 }) // Ensures the closest future quiz comes first
             .limit(1)
@@ -257,13 +255,12 @@ const activateQuiz = async (req, res) => {
 
     try {
         const currentTime = new Date(time); // Convert time to Date object if it's not already
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
         // Find and update quizzes
         const result = await QuizModel.updateMany(
             {
                 class: courseId,
-                start_time: { $lte: updatedTime },
+                start_time: { $lte: currentTime },
             },
             {
                 $set: { is_active: true, is_relesead: true },
@@ -298,13 +295,12 @@ const deactivateQuiz = async (req, res) => {
 
     try {
         const currentTime = new Date(time); // Convert time to Date object if it's not already
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
         // Find and update quizzes
         const result = await QuizModel.updateMany(
             {
                 class: courseId,
-                end_time: { $lte: updatedTime },
+                end_time: { $lte: currentTime },
             },
             {
                 $set: { is_active: false },
@@ -341,14 +337,13 @@ const getNextQuizForTeacher = async (req, res) => {
         const classIds = classes.map((c) => c._id);
 
         const currentTime = new Date();
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
         // Find the next quiz for these classes
         const quiz = await QuizModel.find({
             class: { $in: classIds },
             is_active: false,
             is_relesead: false, // iski spelling ghalat hai
-            start_time: { $gt: updatedTime },
+            start_time: { $gt: currentTime },
         })
             .sort({ start_time: 1 }) // Finds the closest future quiz
             .limit(1)
