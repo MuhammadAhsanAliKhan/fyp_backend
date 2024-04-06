@@ -125,7 +125,9 @@ const getRecentQuizForStudent = async (req, res) => {
 
         const classIds = classes.map((c) => c._id);
         const currentTime = new Date();
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
 
         // Find quizzes that meet the conditions
         const quizzes = await QuizModel.find({
@@ -135,15 +137,17 @@ const getRecentQuizForStudent = async (req, res) => {
             is_active: false,
             end_time: { $lte: updatedTime },
         })
-        .populate("class")
-        .sort({ end_time: -1 }) // Sort quizzes by end_time in descending order
-        .exec();
+            .populate("class")
+            .sort({ end_time: -1 }) // Sort quizzes by end_time in descending order
+            .exec();
 
         // Assuming the most recent quiz is the one you're looking for
         const recentQuiz = quizzes[0];
 
         if (!recentQuiz) {
-            return res.status(404).send("No recent quizzes found for the student.");
+            return res
+                .status(404)
+                .send("No recent quizzes found for the student.");
         }
 
         res.status(200).json({
@@ -156,7 +160,6 @@ const getRecentQuizForStudent = async (req, res) => {
     }
 };
 
-
 const getRecentQuizForTeacher = async (req, res) => {
     try {
         const teacher_id = req.decoded.id;
@@ -166,13 +169,17 @@ const getRecentQuizForTeacher = async (req, res) => {
         const classes = await ClassModel.find({ teacher: teacher_id });
         console.log("Classes", classes);
         if (!classes.length) {
-            return res.status(404).send("Teacher not found teaching any classes");
+            return res
+                .status(404)
+                .send("Teacher not found teaching any classes");
         }
 
         const classIds = classes.map((c) => c._id);
         console.log("ClassIds", classIds);
         const currentTime = new Date();
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
 
         // Find quizzes that meet the conditions
         const quizzes = await QuizModel.find({
@@ -182,16 +189,18 @@ const getRecentQuizForTeacher = async (req, res) => {
             is_active: false,
             end_time: { $lte: updatedTime },
         })
-        .populate("class")
-        .sort({ end_time: -1 }) // Sort quizzes by end_time in descending order
-        .exec();
+            .populate("class")
+            .sort({ end_time: -1 }) // Sort quizzes by end_time in descending order
+            .exec();
 
         // Assuming the most recent quiz is the one you're looking for
         const recentQuiz = quizzes[0];
         console.log("Recent Quiz", recentQuiz);
 
         if (!recentQuiz) {
-            return res.status(404).send("No recent quizzes found for the teacher's classes.");
+            return res
+                .status(404)
+                .send("No recent quizzes found for the teacher's classes.");
         }
 
         res.status(200).json({
@@ -203,7 +212,6 @@ const getRecentQuizForTeacher = async (req, res) => {
         res.status(500).send("Internal server error");
     }
 };
-
 
 const getNextQuizForStudent = async (req, res) => {
     try {
@@ -271,10 +279,11 @@ const activateQuiz = async (req, res) => {
         console.log(`Number of quizzes updated: ${result.modifiedCount}`);
 
         if (result.modifiedCount > 0) {
-            const course = await ClassModel.findById({ _id: courseId});
+            const course = await ClassModel.findById({ _id: courseId });
             if (course) {
                 console.log("Course", course);
-                course.quizReleased = course.quizReleased + result.modifiedCount;
+                course.quizReleased =
+                    course.quizReleased + result.modifiedCount;
                 await course.save();
                 console.log("Course Updated", course);
             }
@@ -387,7 +396,9 @@ const getQuizQuestionsForStudent = async (req, res) => {
 
         // Check if the quiz has ended or not started
         const currentTime = new Date();
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
         }
@@ -439,7 +450,9 @@ const submitQuiz = async (req, res) => {
 
         // Check if the quiz has ended or not started
         const currentTime = new Date();
-        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
 
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
@@ -465,7 +478,7 @@ const submitQuiz = async (req, res) => {
                 question_id: response.question_id,
                 student_answer: response.student_answer,
                 question: quest.question,
-                grade: 0,
+                grade: quest.true_grade,
                 answer: quest.answer,
             };
         });
