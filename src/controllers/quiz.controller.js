@@ -261,6 +261,7 @@ const activateQuiz = async (req, res) => {
             {
                 class: courseId,
                 start_time: { $lte: currentTime },
+                is_relesead: false,
             },
             {
                 $set: { is_active: true, is_relesead: true },
@@ -270,7 +271,7 @@ const activateQuiz = async (req, res) => {
         console.log(`Number of quizzes updated: ${result.modifiedCount}`);
 
         if (result.modifiedCount > 0) {
-            const course = await ClassModel.findById({ _id: courseId, is_relesead: true});
+            const course = await ClassModel.findById({ _id: courseId});
             if (course) {
                 console.log("Course", course);
                 course.quizReleased = course.quizReleased + result.modifiedCount;
