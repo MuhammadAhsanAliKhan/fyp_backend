@@ -14,9 +14,9 @@ const createQuiz = async (req, res) => {
             end_time,
             is_active,
             is_relesead,
-            class_id,
+            courseId,
         } = req.body;
-        const classFound = await ClassModel.findById(class_id);
+        const classFound = await ClassModel.findById(courseId);
         if (!classFound) {
             return res.status(404).send("Class not found");
         }
@@ -27,15 +27,15 @@ const createQuiz = async (req, res) => {
             end_time,
             is_active,
             is_relesead,
-            class: class_id,
+            class: courseId,
         });
 
         console.log("quiz created");
-        const updatedClass = await ClassModel.findByIdAndUpdate(class_id, {
+        const updatedClass = await ClassModel.findByIdAndUpdate(courseId, {
             $push: { quizzes: quiz._id },
         });
 
-        const course = await ClassModel.findById({ _id: class_id });
+        const course = await ClassModel.findById({ _id: courseId });
         if (course) {
             console.log("Course", course);
             course.quizCreated = course.quizCreated + 1;
@@ -119,48 +119,36 @@ const getRecentQuizForStudent = async (req, res) => {
 
         // Find the classes the student is enrolled in
         const classes = await ClassModel.find({ students: student_id });
-        if (classes.length === 0) {
+        if (!classes.length) {
             return res.status(404).send("Student not found in any classes");
         }
 
         const classIds = classes.map((c) => c._id);
         const currentTime = new Date();
+        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
-        // Find quizzes that meet the conditions and are closest to the current time
-        const recentQuiz = await Quiz.aggregate([
-            {
-                $match: {
-                    class: { $in: classIds },
-                    is_relesead: true,
-                    status: "completed",
-                    is_active: false,
-                    end_time: { $lte: currentTime },
-                },
-            },
-            {
-                $project: {
-                    class: 1,
-                    title: 1,
-                    start_time: 1,
-                    end_time: 1,
-                    timeDifference: {
-                        $abs: { $subtract: ["$end_time", currentTime] },
-                    },
-                },
-            },
-            { $sort: { timeDifference: 1 } },
-            { $limit: 1 },
-        ]).exec();
+        // Find quizzes that meet the conditions
+        const quizzes = await QuizModel.find({
+            class: { $in: classIds },
+            is_relesead: true,
+            // status: "completed",
+            is_active: false,
+            end_time: { $lte: updatedTime },
+        })
+        .populate("class")
+        .sort({ end_time: -1 }) // Sort quizzes by end_time in descending order
+        .exec();
 
-        if (recentQuiz.length === 0) {
-            return res
-                .status(404)
-                .send("No recent quizzes found for the student.");
+        // Assuming the most recent quiz is the one you're looking for
+        const recentQuiz = quizzes[0];
+
+        if (!recentQuiz) {
+            return res.status(404).send("No recent quizzes found for the student.");
         }
 
         res.status(200).json({
             message: "Recent quiz found successfully",
-            quiz: recentQuiz[0],
+            quiz: recentQuiz,
         });
     } catch (error) {
         console.error("Failed to fetch the recent quiz for student:", error);
@@ -168,64 +156,54 @@ const getRecentQuizForStudent = async (req, res) => {
     }
 };
 
+
 const getRecentQuizForTeacher = async (req, res) => {
     try {
         const teacher_id = req.decoded.id;
+        // const teacher_id = "65fdc3236ba0c3264ab12c61"; // Hardcoded teacher ID for testing
 
         // Find classes taught by the teacher
         const classes = await ClassModel.find({ teacher: teacher_id });
+        console.log("Classes", classes);
         if (!classes.length) {
-            return res
-                .status(404)
-                .send("Teacher not found teaching any classes");
+            return res.status(404).send("Teacher not found teaching any classes");
         }
 
         const classIds = classes.map((c) => c._id);
+        console.log("ClassIds", classIds);
         const currentTime = new Date();
+        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
-        // Find quizzes that meet the conditions and are closest to the current time
-        const recentQuiz = await Quiz.aggregate([
-            {
-                $match: {
-                    class: { $in: classIds },
-                    is_relesead: true,
-                    status: "completed",
-                    is_active: false,
-                    end_time: { $lte: currentTime },
-                },
-            },
-            {
-                $project: {
-                    class: 1,
-                    title: 1,
-                    start_time: 1,
-                    end_time: 1,
-                    timeDifference: {
-                        $abs: { $subtract: ["$end_time", currentTime] },
-                    },
-                },
-            },
-            { $sort: { timeDifference: 1 } },
-            { $limit: 1 },
-        ])
-            .populate("class")
-            .exec();
+        // Find quizzes that meet the conditions
+        const quizzes = await QuizModel.find({
+            class: { $in: classIds },
+            is_relesead: true,
+            // status: "completed",
+            is_active: false,
+            end_time: { $lte: updatedTime },
+        })
+        .populate("class")
+        .sort({ end_time: -1 }) // Sort quizzes by end_time in descending order
+        .exec();
 
-        if (recentQuiz.length === 0) {
-            return res
-                .status(404)
-                .send("No recent quizzes found for the teacher's classes.");
+        // Assuming the most recent quiz is the one you're looking for
+        const recentQuiz = quizzes[0];
+        console.log("Recent Quiz", recentQuiz);
+
+        if (!recentQuiz) {
+            return res.status(404).send("No recent quizzes found for the teacher's classes.");
         }
 
         res.status(200).json({
             message: "Recent quiz found successfully",
-            quiz: recentQuiz[0],
+            quiz: recentQuiz,
         });
     } catch (error) {
         console.error("Failed to fetch the recent quiz for teacher:", error);
         res.status(500).send("Internal server error");
     }
 };
+
 
 const getNextQuizForStudent = async (req, res) => {
     try {
@@ -243,7 +221,6 @@ const getNextQuizForStudent = async (req, res) => {
         console.log("Class Ids", classIds);
 
         const currentTime = new Date();
-        console.log("Current Time", currentTime);
 
         // Find the next quiz for these classes (Teacher ne release kardia ho but quiz active na ho)
         const quiz = await QuizModel.find({
@@ -290,16 +267,16 @@ const activateQuiz = async (req, res) => {
             }
         );
 
-        // Find the course and increment the quiz created variable
-        const course = await ClassModel.findById({ _id: courseId });
-        if (course) {
-            console.log("Course", course);
-            course.quizReleased = course.quizReleased + 1;
-            await course.save();
-            console.log("Course Updated", course);
-        }
+        console.log(`Number of quizzes updated: ${result.modifiedCount}`);
 
         if (result.modifiedCount > 0) {
+            const course = await ClassModel.findById({ _id: courseId, is_relesead: true});
+            if (course) {
+                console.log("Course", course);
+                course.quizReleased = course.quizReleased + result.modifiedCount;
+                await course.save();
+                console.log("Course Updated", course);
+            }
             res.status(200).json({
                 Message:
                     "Successfully activated ${result.modifiedCount} quizzes",
@@ -409,7 +386,7 @@ const getQuizQuestionsForStudent = async (req, res) => {
 
         // Check if the quiz has ended or not started
         const currentTime = new Date();
-        const updatedTime = newDate(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
         }
@@ -461,7 +438,7 @@ const submitQuiz = async (req, res) => {
 
         // Check if the quiz has ended or not started
         const currentTime = new Date();
-        const updatedTime = newDate(currentTime.getTime() + (5 * 60 * 60 * 1000));
+        const updatedTime = new Date(currentTime.getTime() + (5 * 60 * 60 * 1000));
 
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
