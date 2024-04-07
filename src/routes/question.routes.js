@@ -17,10 +17,8 @@ questionRoute.route('/deleteQuestion/:id').delete(questionController.deleteQuest
 
 questionRoute.route('/label/:label').get(questionController.GetFilteredQuestions);
 
-module.exports = questionRoute;
-
 questionRoute.get('/unique-labels', questionController.GetUnqiueLabels);
 
+questionRoute.post('/generateQuestions', questionController.generateQuestion);
 
-
-
+module.exports = questionRoute;
