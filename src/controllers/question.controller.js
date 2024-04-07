@@ -1,4 +1,85 @@
 const Question = require("../models/question.model")
+const { TextServiceClient } = require("@google-ai/generativelanguage").v1beta2;
+const { GoogleAuth } = require("google-auth-library");
+const API_KEY = "AIzaSyBRFV-0-X1GUKduLCPONzZusXaHLFihR3o"; // Your Google API Key
+const MODEL_NAME = "models/text-bison-001";
+
+const client = new TextServiceClient({
+    authClient: new GoogleAuth().fromAPIKey(API_KEY),
+  });
+
+const generateQuestion = async (req, res) => {
+    const { inputText, true_grade, numQuestions } = req.body;
+  
+    const prompt = `Generate ${numQuestions} questions (complex) where each question is worth ${true_grade} marks about Data Mining from the given text. Provide answers based on the concepts mentioned in the text. Ensure your output is in JSON format with the fields 'Question(n)' (containing the question and 'n' tells which question it is), 'Answer(n)' (the answer derived from the text concepts and 'n' tells which answer it is), and 'Label' (indicating the subtopic of the question and 'n' tells which Label it is). Note that the marks assigned to the questions indicate the complexity of the answers, with higher marks implying a deeper exploration of unique concepts.
+    \`\`\`
+    ${inputText}
+    \`\`\`
+    `;
+    
+    try {
+      const result = await client.generateText({
+        model: MODEL_NAME,
+        prompt: {
+          text: prompt,
+        },
+      });
+  
+    
+       // Save the extracted information into variables or do further processing as needed
+       // Parse the JSON result and extract information
+  
+  const parsedResult = JSON.parse(JSON.stringify(result));
+  console.log(parsedResult[0]?.candidates[0]?.output);
+  const output = parsedResult[0]?.candidates[0]?.output;
+  
+  
+  if (output) {
+    const questioner1 = output.split('"Question(1)": "')[1].split('",\n')[0];
+    const answer1 = output.split('"Answer(1)": "')[1].split('",\n')[0];
+    const labeler1 = output.split('"Label(1)": "')[1].split('"\n')[0];
+  
+    const questioner2 = output.split('"Question(2)": "')[1].split('",\n')[0];
+    const answer2 = output.split('"Answer(2)": "')[1].split('",\n')[0];
+    const labeler2 = output.split('"Label(2)": "')[1].split('"\n')[0];
+  
+    const questioner3 = output.split('"Question(3)": "')[1].split('",\n')[0];
+    const answer3 = output.split('"Answer(3)": "')[1].split('",\n')[0];
+    const labeler3 = output.split('"Label(3)": "')[1].split('"\n')[0];
+  
+    // Create instances of Question using the extracted information
+    const newQuestion1 = new Question({
+      question: questioner1,
+      answer: answer1,
+      true_grade: true_grade,
+      label: labeler1,
+    });
+  
+    const newQuestion2 = new Question({
+      question: questioner2,
+      answer: answer2,
+      true_grade: true_grade, // Assuming true_grade is the same for all questions
+      label: labeler2,
+    });
+  
+    const newQuestion3 = new Question({
+      question: questioner3,
+      answer: answer3,
+      true_grade: true_grade, // Assuming true_grade is the same for all questions
+      label: labeler3,
+    });
+  
+    // Return the newly created questions as JSON
+    res.json([newQuestion1, newQuestion2, newQuestion3]);
+  } else {
+    res.status(500).json({ error: 'No output found in the result.' });
+  }
+  
+       } catch (error) {
+       res.status(500).json({ error: 'An error occurred while generating questions.' });
+      }
+  };
+  
 
 const createQuestions = async (req, res) => {
     try {
@@ -105,5 +186,6 @@ module.exports = {
     deleteQuestion,
     GetFilteredQuestions,
     GetUnqiueLabels,
+    generateQuestion,
 
 }
