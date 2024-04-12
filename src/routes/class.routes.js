@@ -31,4 +31,21 @@ classRoutes
     .route("/api/classes/:classId/add-quiz/:quizId")
     .get(classController.getClassQuizzes);
 
+classRoutes
+    .route("/:id/reviews")
+    .get(extractToken, classController.getReviews)
+    .post(
+        extractToken,
+        checkRole("student"),
+        [
+            body("rating").isNumeric().notEmpty(),
+            body("description").isString().notEmpty(),
+        ],
+        classController.leaveReview
+    );
+
+classRoutes
+    .route("/:id/reviews/:reviewId")
+    .delete(extractToken, checkRole("student"), classController.deleteReview);
+
 module.exports = classRoutes;

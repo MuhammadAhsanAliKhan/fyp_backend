@@ -13,7 +13,7 @@ const responseSchema = new mongoose.Schema({
     // },
     student_answer: {
         type: String,
-        required: true,
+        required: false, // student can submit without answering all questions
     },
     grade: {
         type: Number,
@@ -38,7 +38,7 @@ const questionSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    
+
     responses: [responseSchema],
 });
 

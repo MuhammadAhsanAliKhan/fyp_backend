@@ -107,6 +107,7 @@ const updateProfile = async (req, res) => {
             erp: updateFields.erp,
         });
         if (
+            updateFields.erp &&
             existingErp &&
             existingErp._id.toString() !== student._id.toString()
         ) {

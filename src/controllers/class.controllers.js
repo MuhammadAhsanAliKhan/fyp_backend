@@ -71,6 +71,32 @@ const getClasses = async (req, res) => {
         }
         console.log(classes);
 
+        // instead of avg_rating from db, we will calculate avg rating
+
+        classes = classes.map(async (class_) => {
+            let totalRating = 0; // Start with the rating of the new review
+
+            const reviews = await Review.find({ class: class_._id });
+
+            console.log("reviews:", reviews);
+
+            if (reviews.length > 0) {
+                totalRating += reviews.reduce((acc, review) => {
+                    return acc + review.rating;
+                }, 0);
+            }
+
+            console.log("totalRating:", totalRating);
+
+            class_.avg_rating = totalRating / class_.review_count;
+
+            console.log("class_.avg_rating:", class_.avg_rating);
+            console.log("class_:", class_);
+
+            return class_;
+        });
+        classes = await Promise.all(classes);
+
         res.status(200).json(classes);
     } catch (error) {
         console.log("err:", error);
@@ -95,6 +121,26 @@ const getClass = async (req, res) => {
         if (!class_) {
             return res.status(404).json({ msg: "Class not found" });
         }
+
+        // instead of avg_rating from db, we will calculate avg rating
+
+        let totalRating = 0; // Start with the rating of the new review
+
+        const reviews = await Review.find({ class: class_._id });
+
+        console.log("reviews:", reviews);
+
+        if (reviews.length > 0) {
+            totalRating += reviews.reduce((acc, review) => {
+                return acc + review.rating;
+            }, 0);
+        }
+
+        console.log("totalRating:", totalRating);
+
+        class_.avg_rating = totalRating / class_.review_count;
+
+        console.log("class_.avg_rating", class_.avg_rating);
 
         res.status(200).json(class_);
     } catch (error) {
@@ -275,6 +321,197 @@ const getClassQuizzes = async (req, res) => {
     }
 };
 
+const leaveReview = async (req, res) => {
+    try {
+        console.log("/class/:id/reviews");
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        role = req.decoded.role;
+        id = req.decoded.id;
+
+        if (role !== "student") {
+            return res.status(403).json({ msg: "Forbidden" });
+        }
+
+        const class_ = await Class.findById(req.params.id);
+
+        if (!class_) {
+            return res.status(404).json({ msg: "Class not found" });
+        }
+
+        const student = await Student.findById(id);
+
+        if (!student.classes.includes(req.params.id)) {
+            return res
+                .status(400)
+                .json({ msg: "Student not enrolled in class" });
+        }
+
+        const existingReview = await Review.findOne({
+            class: req.params.id,
+            student: id,
+        });
+        if (existingReview) {
+            return res.status(409).json({ msg: "Class already reviewed" });
+        }
+
+        const { rating, description } = req.body;
+
+        const review_ = new Review({
+            class: req.params.id,
+            student: id,
+            rating,
+            description,
+        });
+
+        await review_.save();
+
+        // add review to class reviews
+        class_.reviews.push(review_._id);
+        class_.review_count += 1;
+
+        // DONT use avg_rating in class_ to calculate avg rating
+
+        // let totalRating = rating; // Start with the rating of the new review
+
+        // if (class_.reviews.length > 0) {
+        //     totalRating += class_.reviews.reduce((acc, reviewId) => {
+        //         return acc + reviewId.rating;
+        //     }, 0);
+        // }
+
+        // class_.avg_rating = totalRating / class_.review_count;
+
+        await class_.save();
+
+        res.status(201).json({ msg: "Review created successfully" });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+const getReviews = async (req, res) => {
+    try {
+        console.log("/class/:id/reviews");
+
+        const class_ = await Class.findById(req.params.id).populate(
+            "reviews",
+            "rating description"
+        );
+
+        if (!class_) {
+            return res.status(404).json({ msg: "Class not found" });
+        }
+
+        const reviewsAggregate = await Review.aggregate([
+            {
+                $match: { class: class_._id },
+            },
+            {
+                $group: {
+                    _id: "$rating",
+                    count: { $sum: 1 },
+                },
+            },
+            {
+                $sort: { _id: -1 },
+            },
+        ]);
+
+        // Prepare summary data
+        const summary = {
+            ratingSummary: {},
+        };
+
+        // Convert aggregate result to summary object
+        let totalRating = 0;
+        reviewsAggregate.forEach((rating) => {
+            totalRating += rating._id * rating.count;
+            summary.ratingSummary[rating._id] = rating.count;
+        });
+
+        // Include class's average rating and review count
+        const classInfo = {
+            avgRating: totalRating / class_.review_count,
+            reviewCount: class_.review_count,
+        };
+
+        res.status(200).json({ reviews: class_.reviews, summary, classInfo });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+const deleteReview = async (req, res) => {
+    try {
+        console.log("/class/:id/reviews/:reviewId");
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        role = req.decoded.role;
+        id = req.decoded.id;
+
+        if (role !== "student") {
+            return res.status(403).json({ msg: "Forbidden" });
+        }
+
+        const class_ = await Class.findById(req.params.id);
+
+        if (!class_) {
+            return res.status(404).json({ msg: "Class not found" });
+        }
+
+        const student = await Student.findById(id);
+
+        if (!student.classes.includes(req.params.id)) {
+            return res
+                .status(400)
+                .json({ msg: "Student not enrolled in class" });
+        }
+
+        const review_ = await Review.findById(req.params.reviewId);
+
+        if (!review_) {
+            return res.status(404).json({ msg: "Review not found" });
+        }
+
+        if (review_.student.toString() !== id) {
+            return res.status(403).json({ msg: "Forbidden incorrect student" });
+        }
+
+        // remove review from class reviews
+        class_.reviews = class_.reviews.filter(
+            (reviewId) => reviewId.toString() !== req.params.reviewId
+        );
+
+        // update avg_rating in class
+        // class_.avg_rating =
+        //     (class_.avg_rating * class_.review_count - review_.rating) /
+        //     (class_.review_count - 1);
+
+        class_.review_count -= 1;
+
+        await class_.save();
+
+        // delete review
+        await Review.findByIdAndDelete(req.params.reviewId);
+
+        res.status(200).json({ msg: "Review deleted successfully" });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     createClass,
     getClasses,
@@ -283,4 +520,7 @@ module.exports = {
     getClassStudents,
     removeStudent,
     getClassQuizzes,
+    leaveReview,
+    getReviews,
+    deleteReview,
 };
