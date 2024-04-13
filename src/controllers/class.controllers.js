@@ -399,10 +399,14 @@ const getReviews = async (req, res) => {
     try {
         console.log("/class/:id/reviews");
 
-        const class_ = await Class.findById(req.params.id).populate(
-            "reviews",
-            "rating description"
-        );
+        const class_ = await Class.findById(req.params.id).populate({
+            path: "reviews",
+            select: "rating description student",
+            populate: {
+                path: "student",
+                select: "name _id email erp",
+            },
+        });
 
         if (!class_) {
             return res.status(404).json({ msg: "Class not found" });
