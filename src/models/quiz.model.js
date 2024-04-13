@@ -25,11 +25,11 @@ const quizSchema = new mongoose.Schema({
     // this is for status
     is_active: {
         type: Boolean,
-        required: true,
+        default: false
     },
     is_relesead: {
         type: Boolean,
-        required: true,
+        default: false
     },
     //Adding Course reference because i need to tell next quiz is of which course
     class: {
