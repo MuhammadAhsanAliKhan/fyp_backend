@@ -12,6 +12,7 @@ classRoutes
 classRoutes
     .route("/:id")
     .get(extractToken, classController.getClass)
+    .put(extractToken, checkRole("teacher"), classController.updateClass)
     .delete(extractToken, checkRole("teacher"), classController.deleteClass);
 
 classRoutes

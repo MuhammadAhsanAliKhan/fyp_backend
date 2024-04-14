@@ -203,6 +203,46 @@ const deleteClass = async (req, res) => {
     }
 };
 
+const updateClass = async (req, res) => {
+    try {
+        console.log("/class/:id");
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        role = req.decoded.role;
+        id = req.decoded.id;
+
+        if (role !== "teacher") {
+            return res.status(403).json({ msg: "Forbidden" });
+        }
+
+        const class_ = await Class.findById(req.params.id);
+
+        if (!class_) {
+            return res.status(404).json({ msg: "Class not found" });
+        }
+
+        if (class_.teacher.toString() !== id) {
+            return res.status(403).json({ msg: "Forbidden incorrect teacher" });
+        }
+
+        const { name, description } = req.body;
+
+        if (name) class_.course_name = name;
+        if (description) class_.description = description;
+
+        await class_.save();
+
+        res.status(200).json({ msg: "Class updated successfully" });
+    } catch (error) {
+        console.log("err:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
 const getClassStudents = async (req, res) => {
     try {
         console.log("/class/:id/students");
@@ -521,6 +561,7 @@ module.exports = {
     getClasses,
     getClass,
     deleteClass,
+    updateClass,
     getClassStudents,
     removeStudent,
     getClassQuizzes,
