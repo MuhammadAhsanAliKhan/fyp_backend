@@ -678,6 +678,28 @@ const updateQuiz = async (req, res) => {
     }
 };
 
+const getQuizzesForTeacher = async (req, res) => {
+    try {
+        const teacherId = req.decoded.id;
+        console.log("TeacherId", teacherId);
+        const classes = await ClassModel.find({ teacher: teacherId }).populate({
+            path: 'quizzes',
+            model: 'Quiz',
+        });
+
+        let quizzes = [];
+        classes.forEach(cl => {
+            quizzes = quizzes.concat(cl.quizzes);
+        });
+
+        console.log("quizzes", quizzes);
+        res.json({ quizzes: quizzes });
+    } catch (error) {
+        console.error('Error fetching quizzes by teacher:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 module.exports = {
     createQuiz,
     getQuizzesByClass,
@@ -693,4 +715,5 @@ module.exports = {
     getQuizResultsForTeacher,
     getQuizResultsForStudent,
     updateQuiz,
+    getQuizzesForTeacher,
 };
