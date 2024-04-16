@@ -67,5 +67,6 @@ quizRoutes
     );
 
 quizRoutes.route("/api/quizzes/:quizId").patch(quizController.updateQuiz);
+quizRoutes.route("/getQuizzesForTeacher").get(extractToken, quizController.getQuizzesForTeacher);
 
 module.exports = quizRoutes;

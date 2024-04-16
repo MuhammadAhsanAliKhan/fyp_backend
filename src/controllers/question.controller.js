@@ -1,4 +1,5 @@
 const Question = require("../models/question.model")
+const QuizModel = require("../models/quiz.model");
 const { TextServiceClient } = require("@google-ai/generativelanguage").v1beta2;
 const { GoogleAuth } = require("google-auth-library");
 const API_KEY = "AIzaSyBRFV-0-X1GUKduLCPONzZusXaHLFihR3o"; // Your Google API Key
@@ -177,6 +178,27 @@ const GetUnqiueLabels =async (req, res) => {
     }
   };
 
+  const getQuestionsByQuizId = async (req, res) => {
+    try {
+        const quizId = req.params.quizId;
+        // const quizId = "66029e2d3757a0ead322ebb6";
+        const response = await QuizModel.findById(quizId).populate({
+            path: 'questions',
+            model: 'Question', // Make sure this matches the name you've given your questions model
+        });
+
+        if (!response) {
+            return res.status(404).send('Quiz not found');
+        }
+        console.log(response.questions);
+
+        res.status(200).send({questions: response.questions});
+    } catch (error) {
+        console.error('Error fetching questions for quiz:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 
 module.exports = {
     createQuestions,
@@ -187,5 +209,6 @@ module.exports = {
     GetFilteredQuestions,
     GetUnqiueLabels,
     generateQuestion,
+    getQuestionsByQuizId,
 
 }

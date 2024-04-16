@@ -21,4 +21,6 @@ questionRoute.get('/unique-labels', questionController.GetUnqiueLabels);
 
 questionRoute.post('/generateQuestions', questionController.generateQuestion);
 
+questionRoute.route('/getQuestionsByQuizId/:quizId').get(questionController.getQuestionsByQuizId);
+
 module.exports = questionRoute;
