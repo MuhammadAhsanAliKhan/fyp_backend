@@ -693,7 +693,7 @@ const getQuizzesForTeacher = async (req, res) => {
         });
 
         console.log("quizzes", quizzes);
-        res.json({ quizzes: quizzes });
+        res.status(200).json({ quizzes: quizzes });
     } catch (error) {
         console.error('Error fetching quizzes by teacher:', error);
         res.status(500).send('Internal Server Error');
