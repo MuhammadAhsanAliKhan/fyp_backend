@@ -32,4 +32,12 @@ teacherRoutes
         teacherController.updateProfile
     );
 
+teacherRoutes
+    .route("/profile/picture")
+    .put(
+        upload.single("profile_picture"),
+        extractToken,
+        teacherController.updateProfilePicture
+    );
+
 module.exports = teacherRoutes;

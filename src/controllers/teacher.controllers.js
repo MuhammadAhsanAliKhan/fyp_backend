@@ -96,4 +96,39 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = { signUp, profile, updateProfile };
+const updateProfilePicture = async (req, res) => {
+    try {
+        console.log("teacher/pofile/picture");
+
+        let teacher = await Teacher.findById(req.decoded.id).select(
+            "-password"
+        );
+
+        if (!teacher) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        let updateFields = {};
+        if (req.file) {
+            updateFields.profile_picture = {
+                filename: req.file.filename,
+                path: req.file.path,
+            };
+        }
+
+        teacher = await Teacher.findByIdAndUpdate(
+            req.decoded.id,
+            updateFields,
+            {
+                new: true,
+            }
+        ).select("-password");
+
+        res.status(200).json({ teacher });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+module.exports = { signUp, profile, updateProfile, updateProfilePicture };
