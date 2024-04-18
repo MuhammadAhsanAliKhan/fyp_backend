@@ -7,6 +7,9 @@ const { extractToken, checkRole } = require("../middleware/middleware");
 questionRoute
 .route("/createQuestion").post(questionController.createQuestions);
 
+questionRoute
+.route("/createQuestionsByQuizId").post(questionController.createQuestionsByQuizId);
+
 questionRoute.route('/getQuestion').get(questionController.getQuestions);
 
 questionRoute.route('/getByID/:id').get(questionController.getQuestionById);
