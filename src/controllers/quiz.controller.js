@@ -103,10 +103,18 @@ const deleteQuiz = async (req, res) => {
         if (!quiz) {
             return res.status(404).send("Quiz not found");
         }
-        if (quiz.is_released) {
+        if (quiz.is_relesead) {
             return res.status(400).send("Cannot delete a released quiz");
         }
         await QuizModel.findByIdAndDelete(quizId);
+        // decrement quizCreated in class
+        const course = await ClassModel.findById({ _id: quiz.class });
+        if (course) {
+            console.log("Course", course);
+            course.quizCreated = course.quizCreated - 1;
+            await course.save();
+        }
+
         res.status(200).send({ message: "Quiz deleted successfully" });
     } catch (error) {
         res.status(400).send(error);
@@ -682,32 +690,32 @@ const getQuizzesForTeacher = async (req, res) => {
     try {
         const teacherId = req.decoded.id;
         const classes = await ClassModel.find({ teacher: teacherId }).populate({
-            path: 'quizzes',
-            model: 'Quiz',
-            select: '_id title questions start_time end_time is_active is_relesead class' // Specify fields to include
+            path: "quizzes",
+            model: "Quiz",
+            select: "_id title questions start_time end_time is_active is_relesead class", // Specify fields to include
         });
 
         let quizzes = [];
-        classes.forEach(cl => {
+        classes.forEach((cl) => {
             // Map each quiz to the desired format
-            const formattedQuizzes = cl.quizzes.map(quiz => ({
+            const formattedQuizzes = cl.quizzes.map((quiz) => ({
                 id: quiz._id.toString(),
                 title: quiz.title,
-                questions: quiz.questions.map(q => q.toString()), // Assuming 'questions' is an array of String or ObjectIds
+                questions: quiz.questions.map((q) => q.toString()), // Assuming 'questions' is an array of String or ObjectIds
                 start_time: quiz.start_time,
                 end_time: quiz.end_time,
                 is_active: quiz.is_active,
                 is_relesead: quiz.is_relesead,
-                class_id: quiz.class.toString()
+                class_id: quiz.class.toString(),
             }));
             quizzes = quizzes.concat(formattedQuizzes);
-            console.log('Quizzes:', quizzes);
+            console.log("Quizzes:", quizzes);
         });
 
         res.status(200).json(quizzes); // send the formatted quizzes array
     } catch (error) {
-        console.error('Error fetching quizzes by teacher:', error);
-        res.status(500).send('Internal Server Error');
+        console.error("Error fetching quizzes by teacher:", error);
+        res.status(500).send("Internal Server Error");
     }
 };
 
