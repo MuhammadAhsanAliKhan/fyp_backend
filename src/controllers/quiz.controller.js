@@ -98,7 +98,24 @@ const getQuizzesByClass = async (req, res) => {
 
 const deleteQuiz = async (req, res) => {
     try {
-        const { quizId } = req.body;
+        const { quizId } = req.params;
+        const quiz = await QuizModel.findById({ _id: quizId });
+        if (!quiz) {
+            return res.status(404).send("Quiz not found");
+        }
+        if (quiz.is_released) {
+            return res.status(400).send("Cannot delete a released quiz");
+        }
+        await QuizModel.findByIdAndDelete(quizId);
+        res.status(200).send({ message: "Quiz deleted successfully" });
+    } catch (error) {
+        res.status(400).send(error);
+    }
+};
+
+const deleteQuizForWeb = async (req, res) => {
+    try {
+        const { quizId } = req.params;
         const quiz = await QuizModel.findById({ _id: quizId });
         if (!quiz) {
             return res.status(404).send("Quiz not found");
@@ -715,6 +732,7 @@ module.exports = {
     createQuiz,
     getQuizzesByClass,
     deleteQuiz,
+    deleteQuizForWeb,
     getRecentQuizForStudent,
     getRecentQuizForTeacher,
     getNextQuizForStudent,

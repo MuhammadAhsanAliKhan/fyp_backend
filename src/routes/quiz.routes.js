@@ -14,6 +14,8 @@ quizRoutes
 // DELETE route to delete a quiz by its ID
 quizRoutes.route("/deleteQuiz").delete(quizController.deleteQuiz);
 
+quizRoutes.route("/deleteQuiz/:quizId").delete(quizController.deleteQuizForWeb);
+
 // POST route to get the most recent quiz for a student
 quizRoutes
     .route("/recentQuizForStudent")
