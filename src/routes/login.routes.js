@@ -27,16 +27,19 @@ loginRoutes
                 const teacher = await Teacher.findOne({ email });
                 const student = await Student.findOne({ email });
                 let pass;
+                let name;
                 let role;
                 let _id;
                 if (teacher) {
                     pass = teacher.password;
                     role = "teacher";
                     _id = teacher._id;
+                    name = teacher.name;
                 } else if (student) {
                     pass = student.password;
                     role = "student";
                     _id = student._id;
+                    name = student.name;
                 } else {
                     return res
                         .status(401)
@@ -68,6 +71,7 @@ loginRoutes
                     msg: "User signed in successfully",
                     role,
                     token,
+                    name,
                 });
             } catch (error) {
                 res.status(500).json({ msg: "Internal Server Error" });

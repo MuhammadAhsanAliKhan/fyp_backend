@@ -4,6 +4,7 @@ const Teacher = require("../models/teacher.model");
 
 const extractToken = (req, res, next) => {
     try {
+        console.log("Extracting token");
         const token = req.header("Authorization").split(" ")[1];
         if (!token) {
             return res
@@ -14,6 +15,7 @@ const extractToken = (req, res, next) => {
         req.decoded = decoded;
         next();
     } catch (error) {
+        console.error("Error:", error);
         res.status(500).json({ msg: "Internal Server Error" });
     }
 };
