@@ -681,19 +681,30 @@ const updateQuiz = async (req, res) => {
 const getQuizzesForTeacher = async (req, res) => {
     try {
         const teacherId = req.decoded.id;
-        console.log("TeacherId", teacherId);
         const classes = await ClassModel.find({ teacher: teacherId }).populate({
             path: 'quizzes',
             model: 'Quiz',
+            select: '_id title questions start_time end_time is_active is_relesead class' // Specify fields to include
         });
 
         let quizzes = [];
         classes.forEach(cl => {
-            quizzes = quizzes.concat(cl.quizzes);
+            // Map each quiz to the desired format
+            const formattedQuizzes = cl.quizzes.map(quiz => ({
+                id: quiz._id.toString(),
+                title: quiz.title,
+                questions: quiz.questions.map(q => q.toString()), // Assuming 'questions' is an array of String or ObjectIds
+                start_time: quiz.start_time,
+                end_time: quiz.end_time,
+                is_active: quiz.is_active,
+                is_relesead: quiz.is_relesead,
+                class_id: quiz.class.toString()
+            }));
+            quizzes = quizzes.concat(formattedQuizzes);
+            console.log('Quizzes:', quizzes);
         });
 
-        console.log("quizzes", quizzes);
-        res.status(200).json({ quizzes: quizzes });
+        res.status(200).json(quizzes); // send the formatted quizzes array
     } catch (error) {
         console.error('Error fetching quizzes by teacher:', error);
         res.status(500).send('Internal Server Error');

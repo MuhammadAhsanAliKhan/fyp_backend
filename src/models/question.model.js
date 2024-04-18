@@ -32,11 +32,11 @@ const questionSchema = new mongoose.Schema({
     },
     true_grade: {
         type: Number,
-        required: true,
+        deault: 0,
     },
     label: {
         type: String,
-        required: false,
+        default: "",
     },
 
     responses: [responseSchema],
