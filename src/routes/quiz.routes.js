@@ -57,6 +57,15 @@ quizRoutes
         quizController.getQuizResultsForTeacher
     );
 
+// GET  route to get the quiz results of 1 student for teacher view with answers
+quizRoutes
+    .route("/:quiz_id/teacherResults/:student_id")
+    .get(
+        extractToken,
+        checkRole("teacher"),
+        quizController.getQuizResultsForTeacherPerStudent
+    );
+
 // GET route to get the quiz results of student for student view with answers
 quizRoutes
     .route("/:quiz_id/studentResults")
@@ -67,6 +76,8 @@ quizRoutes
     );
 
 quizRoutes.route("/:quizId").put(quizController.updateQuiz);
-quizRoutes.route("/getQuizzesForTeacher").get(extractToken, quizController.getQuizzesForTeacher);
+quizRoutes
+    .route("/getQuizzesForTeacher")
+    .get(extractToken, quizController.getQuizzesForTeacher);
 
 module.exports = quizRoutes;

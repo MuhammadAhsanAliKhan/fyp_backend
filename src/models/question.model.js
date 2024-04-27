@@ -6,11 +6,6 @@ const responseSchema = new mongoose.Schema({
         ref: "Student",
         required: true,
     },
-    // question: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "Question",
-    //     required: true,
-    // },
     student_answer: {
         type: String,
         required: false, // student can submit without answering all questions
@@ -18,6 +13,16 @@ const responseSchema = new mongoose.Schema({
     grade: {
         type: Number,
         required: false,
+    },
+    word2vec_score: {
+        type: mongoose.Types.Decimal128,
+        required: false,
+        default: 0,
+    },
+    rouge_score: {
+        type: mongoose.Types.Decimal128,
+        required: false,
+        default: 0,
     },
 });
 
