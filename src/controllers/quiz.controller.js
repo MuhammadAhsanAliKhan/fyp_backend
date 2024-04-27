@@ -531,6 +531,8 @@ const submitQuiz = async (req, res) => {
                     student: student_id,
                     student_answer: response.student_answer,
                     grade: response.grade,
+                    word2vec_score: response.similarity,
+                    rouge_score: response.similarity_rouge,
                 });
                 await question.save();
                 return question;
@@ -624,6 +626,8 @@ const getQuizResultsForStudent = async (req, res) => {
             return res.status(400).send("Student has not submitted the quiz");
         }
 
+        let errors = [];
+
         // for the quiz get all questions and student response to each and grade and total grade
         // true_grade and grade for overall quiz
         let total_grade = 0;
@@ -632,13 +636,19 @@ const getQuizResultsForStudent = async (req, res) => {
             quiz.questions.map(async (question_id) => {
                 const question = await QuestionModel.findById(question_id);
                 if (!question) {
-                    return res.status(404).send("Question not found");
+                    errors.push(
+                        `Question not found for question ${question_id}`
+                    );
+                    return;
                 }
                 const response = question.responses.find(
                     (response) => response.student == student_id
                 );
                 if (!response) {
-                    return res.status(404).send("Response not found");
+                    errors.push(
+                        `Response not found for question ${question_id}`
+                    );
+                    return;
                 }
                 total_grade += response.grade;
                 total_true_grade += question.true_grade;
@@ -653,6 +663,8 @@ const getQuizResultsForStudent = async (req, res) => {
             })
         );
 
+        console.log("Errors", errors);
+
         res.status(200).json({
             message: "Quiz results found successfully",
             results,
@@ -662,6 +674,82 @@ const getQuizResultsForStudent = async (req, res) => {
     } catch (error) {
         console.error("Failed to fetch the quiz results for student:", error);
         res.status(500).send("Internal server error");
+    }
+};
+
+const getQuizResultsForTeacherPerStudent = async (req, res) => {
+    try {
+        console.log("quiz/:quiz_id/studentResults/:student_id");
+
+        const { quiz_id, student_id } = req.params;
+
+        const quiz = await QuizModel.findById(quiz_id);
+        if (!quiz) {
+            return res.status(404).send("Quiz not found");
+        }
+
+        const student = await StudentModel.findById(student_id);
+        if (!student) {
+            return res.status(404).send("Student not found");
+        }
+
+        if (!quiz.submitted_by.includes(student_id)) {
+            return res.status(400).send("Student has not submitted the quiz");
+        }
+
+        let errors = [];
+
+        // for the quiz get all questions and student response to each and grade and total grade
+        // true_grade and grade for overall quiz
+        let total_grade = 0;
+        let total_true_grade = 0;
+        let results = await Promise.all(
+            quiz.questions.map(async (question_id) => {
+                const question = await QuestionModel.findById(question_id);
+                console.log("Question", question);
+                if (!question.responses) {
+                    console.log("Question not found");
+                    errors.push("Question not found");
+                    return;
+                }
+                const response = question.responses.find(
+                    (response) => response.student == student_id
+                );
+                // console.log("Response", response);
+                if (!response) {
+                    console.log("Response not found");
+                    errors.push(
+                        `Response not found for question ${question_id}`
+                    );
+                    return;
+                }
+                total_grade += response.grade;
+                total_true_grade += question.true_grade;
+                console.log("Response", response);
+                return {
+                    question_id: question_id,
+                    true_answer: question.answer,
+                    true_grade: question.true_grade,
+                    question: question.question,
+                    student_answer: response.student_answer,
+                    grade: response.grade,
+                    word2vec_score: response.word2vec_score,
+                    rouge_score: response.rouge_score,
+                };
+            })
+        );
+        console.log("Errors", errors);
+
+        console.log("Results", results);
+        res.status(200).json({
+            message: "Quiz results found successfully",
+            results,
+            total_grade,
+            total_true_grade,
+        });
+    } catch (error) {
+        console.error("Failed to fetch the quiz results for student:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
     }
 };
 
@@ -733,6 +821,7 @@ module.exports = {
     submitQuiz,
     getQuizResultsForTeacher,
     getQuizResultsForStudent,
+    getQuizResultsForTeacherPerStudent,
     updateQuiz,
     getQuizzesForTeacher,
 };

@@ -11,6 +11,7 @@ import gensim.downloader as api
 import string
 import nltk
 from nltk.corpus import stopwords
+from rouge import Rouge
 
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../config.env')
@@ -55,7 +56,7 @@ nlp = load_saved_word2vec()
 nltk.download('stopwords')  # Download the stopwords dataset if not already downloaded
 stop_words = set(stopwords.words('english'))  # Get the list of English stop words
 
-# Grade test API
+# Grade test API------ For testing purpose
 @app.route('/test', methods=['POST'])
 def grade():
     # Get student response and golden answer from request
@@ -76,7 +77,7 @@ def grade():
 accesses questions from from quiz, accesses student response from quiz, grades student response
 and stores correctness of student response in mongodb'''
 
-# Grade student response API
+# Grade student response API ------ No longer used in application
 @app.route('/calculate_grade/<quiz_id>', methods=['POST'])
 def calculate_grade(quiz_id):
     # Retrieve quiz from MongoDB
@@ -151,11 +152,21 @@ def grade_student_response():
         # Calculate similarity of student response to golden answer
         similarity = calculate_similarity(student_response, golden_answer, question, true_grade)
         grade = calculate_grade(similarity, true_grade)
+        similarity_rouge = calculate_rouge_similarity(student_response, golden_answer, true_grade)
         
         res['grade'] = grade
         res['similarity'] = similarity
+        res['similarity_rouge'] = similarity_rouge
 
     return jsonify({'questions': studentRes})
+
+def calculate_rouge_similarity(student_ans, gold_ans, marks):
+    rouge = Rouge()
+    scores = rouge.get_scores(student_ans, gold_ans)
+    similarity = scores[0]['rouge-1']['f']
+    # convert marks to float
+    marks = float(marks)
+    return similarity*marks
 
 def preprocess_text(text):
     # Tokenization, lowercasing, and punctuation removal
