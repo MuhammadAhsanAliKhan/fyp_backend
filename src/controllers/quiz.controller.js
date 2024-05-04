@@ -132,10 +132,10 @@ const getRecentQuizForStudent = async (req, res) => {
         }
 
         const classIds = classes.map((c) => c._id);
-        const currentTime = new Date();
-        const updatedTime = new Date(
-            currentTime.getTime() + 5 * 60 * 60 * 1000
-        );
+        const updatedTime = new Date();
+        // const updatedTime = new Date(
+        //     currentTime.getTime() + 5 * 60 * 60 * 1000
+        // );
 
         // Find quizzes that meet the conditions
         const quizzes = await QuizModel.find({
@@ -184,10 +184,10 @@ const getRecentQuizForTeacher = async (req, res) => {
 
         const classIds = classes.map((c) => c._id);
         console.log("ClassIds", classIds);
-        const currentTime = new Date();
-        const updatedTime = new Date(
-            currentTime.getTime() + 5 * 60 * 60 * 1000
-        );
+        const updatedTime = new Date();
+        // const updatedTime = new Date(
+        //     currentTime.getTime() + 5 * 60 * 60 * 1000
+        // );
 
         // Find quizzes that meet the conditions
         const quizzes = await QuizModel.find({
@@ -403,10 +403,10 @@ const getQuizQuestionsForStudent = async (req, res) => {
         }
 
         // Check if the quiz has ended or not started
-        const currentTime = new Date();
-        const updatedTime = new Date(
-            currentTime.getTime() + 5 * 60 * 60 * 1000
-        );
+        const updatedTime = new Date();
+        // const updatedTime = new Date(
+        //     currentTime.getTime() + 5 * 60 * 60 * 1000
+        // );
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
         }
