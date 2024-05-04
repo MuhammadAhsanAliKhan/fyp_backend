@@ -40,6 +40,37 @@ const signUp = async (req, res) => {
     }
 };
 
+const signUpPicture = async (req, res) => {
+    try {
+        console.log("teacher/signUp/picture");
+
+        const { email, password, name } = req.body;
+        // const file = req.file;
+
+        const existingUser = await Teacher.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ msg: "User already exists" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const teacher = new Teacher({
+            email,
+            password: hashedPassword,
+            name,
+            // profile_picture: {
+            //     filename: file.filename,
+            //     path: file.path,
+            // },
+        });
+
+        await teacher.save();
+
+        res.status(201).json({ msg: "User created successfully" });
+    } catch (error) {
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
 const profile = async (req, res) => {
     try {
         console.log("teacher/profile");
@@ -131,4 +162,10 @@ const updateProfilePicture = async (req, res) => {
     }
 };
 
-module.exports = { signUp, profile, updateProfile, updateProfilePicture };
+module.exports = {
+    signUp,
+    signUpPicture,
+    profile,
+    updateProfile,
+    updateProfilePicture,
+};
