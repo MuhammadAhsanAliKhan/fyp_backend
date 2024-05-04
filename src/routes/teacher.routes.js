@@ -23,6 +23,10 @@ teacherRoutes
     );
 
 teacherRoutes
+    .route("/signUp/picture")
+    .post(upload.single("profile_picture"), teacherController.signUpPicture);
+
+teacherRoutes
     .route("/profile")
     .get(extractToken, teacherController.profile)
     .put(
