@@ -467,9 +467,9 @@ const submitQuiz = async (req, res) => {
         // if (quiz.start_time > updatedTime) {
         //     return res.status(400).send("Quiz has not started yet");
         // }
-        if (quiz.end_time < updatedTime) {
-            return res.status(400).send("Quiz has ended");
-        }
+        // if (quiz.end_time < updatedTime) {
+        //     return res.status(400).send("Quiz has ended");
+        // }
 
         // Check if the student has already submitted the quiz
         if (quiz.submitted_by.includes(student_id)) {
