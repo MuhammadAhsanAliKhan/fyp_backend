@@ -457,13 +457,13 @@ const submitQuiz = async (req, res) => {
         }
 
         // Check if the quiz has ended or not started
-        const currentTime = new Date();
-        const updatedTime = new Date(
-            currentTime.getTime() + 5 * 60 * 60 * 1000
-        );
+        const updatedTime = new Date();
+        // const updatedTime = new Date(
+        //     currentTime.getTime() + 5 * 60 * 60 * 1000
+        // );
 
         console.log("Start Time", quiz.start_time);
-        console.log("Current Time", quiz.updatedTime);
+        console.log("Current Time", updatedTime);
 
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
