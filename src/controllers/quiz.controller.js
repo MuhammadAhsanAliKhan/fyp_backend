@@ -403,12 +403,12 @@ const getQuizQuestionsForStudent = async (req, res) => {
         }
 
         // Check if the quiz has ended or not started
-        const updatedTime = new Date();
-        // const updatedTime = new Date(
-        //     currentTime.getTime() + 5 * 60 * 60 * 1000
-        // );
+        const currentTime = new Date();
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
         if (quiz.start_time > updatedTime) {
-            return res.status(400).send("Quiz has not started yet");
+            return res.status(400).send("Quiz has not started yet Questions");
         }
 
         if (quiz.end_time < updatedTime) {
