@@ -457,19 +457,20 @@ const submitQuiz = async (req, res) => {
         }
 
         // Check if the quiz has ended or not started
-        const updatedTime = new Date();
-        // const updatedTime = new Date(
-        //     currentTime.getTime() + 5 * 60 * 60 * 1000
-        // );
+        const currentTime = new Date();
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
+
         console.log("Start Time", quiz.start_time);
         console.log("Current Time", quiz.updatedTime);
 
-        // if (quiz.start_time > updatedTime) {
-        //     return res.status(400).send("Quiz has not started yet");
-        // }
-        // if (quiz.end_time < updatedTime) {
-        //     return res.status(400).send("Quiz has ended");
-        // }
+        if (quiz.start_time > updatedTime) {
+            return res.status(400).send("Quiz has not started yet");
+        }
+        if (quiz.end_time < updatedTime) {
+            return res.status(400).send("Quiz has ended");
+        }
 
         // Check if the student has already submitted the quiz
         if (quiz.submitted_by.includes(student_id)) {
