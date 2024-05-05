@@ -132,10 +132,10 @@ const getRecentQuizForStudent = async (req, res) => {
         }
 
         const classIds = classes.map((c) => c._id);
-        const updatedTime = new Date();
-        // const updatedTime = new Date(
-        //     currentTime.getTime() + 5 * 60 * 60 * 1000
-        // );
+        const currentTime = new Date();
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
 
         // Find quizzes that meet the conditions
         const quizzes = await QuizModel.find({
@@ -184,10 +184,10 @@ const getRecentQuizForTeacher = async (req, res) => {
 
         const classIds = classes.map((c) => c._id);
         console.log("ClassIds", classIds);
-        const updatedTime = new Date();
-        // const updatedTime = new Date(
-        //     currentTime.getTime() + 5 * 60 * 60 * 1000
-        // );
+        const currentTime = new Date();
+        const updatedTime = new Date(
+            currentTime.getTime() + 5 * 60 * 60 * 1000
+        );
 
         // Find quizzes that meet the conditions
         const quizzes = await QuizModel.find({
