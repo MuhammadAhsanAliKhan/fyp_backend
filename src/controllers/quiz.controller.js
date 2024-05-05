@@ -461,10 +461,12 @@ const submitQuiz = async (req, res) => {
         // const updatedTime = new Date(
         //     currentTime.getTime() + 5 * 60 * 60 * 1000
         // );
+        console.log("Start Time", quiz.start_time);
+        console.log("Current Time", quiz.updatedTime);
 
-        if (quiz.start_time > updatedTime) {
-            return res.status(400).send("Quiz has not started yet");
-        }
+        // if (quiz.start_time > updatedTime) {
+        //     return res.status(400).send("Quiz has not started yet");
+        // }
         if (quiz.end_time < updatedTime) {
             return res.status(400).send("Quiz has ended");
         }
