@@ -501,7 +501,7 @@ const submitQuiz = async (req, res) => {
         let grade;
         // Calculate the grade through flask API
         await axios
-            .post("https://grading-subsystem.vercel.app/grade", {
+            .post("https://grading.azurewebsites.net/grade", {
                 quiz_id,
                 student_id,
                 student_res,
