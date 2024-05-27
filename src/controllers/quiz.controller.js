@@ -408,7 +408,7 @@ const getQuizQuestionsForStudent = async (req, res) => {
             currentTime.getTime() + 5 * 60 * 60 * 1000
         );
         if (quiz.start_time > updatedTime) {
-            return res.status(400).send("Quiz has not started yet");
+            return res.status(400).send("Quiz has not started yet Questions");
         }
 
         if (quiz.end_time < updatedTime) {
@@ -462,6 +462,9 @@ const submitQuiz = async (req, res) => {
             currentTime.getTime() + 5 * 60 * 60 * 1000
         );
 
+        console.log("Start Time", quiz.start_time);
+        console.log("Current Time", updatedTime);
+
         if (quiz.start_time > updatedTime) {
             return res.status(400).send("Quiz has not started yet");
         }
@@ -498,7 +501,7 @@ const submitQuiz = async (req, res) => {
         let grade;
         // Calculate the grade through flask API
         await axios
-            .post("http://127.0.0.1:8000/grade", {
+            .post("https://grading.azurewebsites.net/grade", {
                 quiz_id,
                 student_id,
                 student_res,
